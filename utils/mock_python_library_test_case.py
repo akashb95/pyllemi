@@ -14,11 +14,15 @@ class MockPythonLibraryTestCase(TestCase):
         self.subpackage_module = os.path.join(self.subpackage_dir, "test_module_1.py")
 
         if os.path.exists(self.test_dir):
-            raise FileExistsError(f"cannot create {self.test_dir} for test setup: path already exists")
+            raise FileExistsError(
+                f"cannot create {self.test_dir} for test setup: path already exists"
+            )
         os.makedirs(self.test_dir)
 
         if os.path.exists(self.subpackage_dir):
-            raise FileExistsError(f"cannot create {self.test_dir} for test setup: path already exists")
+            raise FileExistsError(
+                f"cannot create {self.test_dir} for test setup: path already exists"
+            )
         os.makedirs(self.subpackage_dir)
 
         with open(self.plzconfig_file, "w") as f:
@@ -32,6 +36,8 @@ class MockPythonLibraryTestCase(TestCase):
 
         with open(self.subpackage_module, "w") as f:
             f.write("y = 10")
+
+        self.test_wd = os.path.abspath(os.getcwd())
 
         self.files_to_delete = [
             self.package_module,

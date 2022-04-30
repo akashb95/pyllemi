@@ -9,8 +9,9 @@ from urllib.request import urlopen
 def _scrape_standard_libs(py_version: Optional[str] = None, top_level_only: bool = True):
     """
     A hacky solution to scrape the Python standard libs for a Python version < 3.10.
-    Since this solution could fail due to network errors, the generated files will be persisted in VCS.
-    The function exists as a record of the code used to generate the aforementioned files.
+
+    Since this solution could fail due to network errors, the generated files will be persisted
+    in VCS. The function exists as a record of the code used to generate the aforementioned files.
     """
 
     if py_version is None:
@@ -27,7 +28,9 @@ def _scrape_standard_libs(py_version: Optional[str] = None, top_level_only: bool
 
 
 @lru_cache(maxsize=1)
-def get_stdlib_module_names(version: Optional[tuple[int, int]] = None) -> Union[frozenset[str], set[str]]:
+def get_stdlib_module_names(
+    version: Optional[tuple[int, int]] = None
+) -> Union[frozenset[str], set[str]]:
     py_version = version
     if version is None:
         py_version = sys.version_info
@@ -42,7 +45,9 @@ def get_stdlib_module_names(version: Optional[tuple[int, int]] = None) -> Union[
             f"imports.stdlib.{py_version.major}_{py_version.minor}"
         )
     except ModuleNotFoundError:
-        raise ValueError(f"could not fetch builtin modules for Python version {'.'.join(py_version)}")
+        raise ValueError(
+            f"could not fetch builtin modules for Python version {'.'.join(py_version)}"
+        )
 
     return getattr(stdlib_pkg, "MODULE_NAMES")
 
@@ -55,5 +60,5 @@ if __name__ == "__main__":
     os.makedirs("stdlib")
     for version in VERSIONS:
         with open(os.path.join("stdlib", version.replace(".", "_") + ".py"), "w") as f:
-            f.write(f"# GENERATED FILE, DO NOT MODIFY\n")
+            f.write("# GENERATED FILE, DO NOT MODIFY\n")
             f.write(f"MODULE_NAMES = {_scrape_standard_libs(version)}\n")

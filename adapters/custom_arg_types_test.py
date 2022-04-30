@@ -10,7 +10,9 @@ class TestExistingFileArgType(TestCase):
     def setUp(self) -> None:
         self.test_dir_path = os.path.abspath(f"test_dir_{uuid.uuid4()}")
         if os.path.exists(self.test_dir_path):
-            raise FileExistsError(f"Cannot create dir because path already exists: {self.test_dir_path}")
+            raise FileExistsError(
+                f"Cannot create dir because path already exists: {self.test_dir_path}"
+            )
         os.makedirs(self.test_dir_path)
 
         with open(os.path.join(self.test_dir_path, "module.py"), "w") as f:

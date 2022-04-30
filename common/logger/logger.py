@@ -2,7 +2,7 @@
 Utility function for setting up a logger that uses the logging function with a specific format.
 """
 
-import logging
+import logging  # noqa: LOG001
 import sys
 from logging.handlers import RotatingFileHandler
 from typing import Optional
@@ -25,7 +25,10 @@ class UpperThresholdFilter(logging.Filter):
 
 
 def setup_logger(
-    name: str, level: int, formatter: Optional[logging.Formatter] = None, filepath: Optional[str] = None
+    name: str,
+    level: int,
+    formatter: Optional[logging.Formatter] = None,
+    filepath: Optional[str] = None,
 ) -> logging.Logger:
     """
 

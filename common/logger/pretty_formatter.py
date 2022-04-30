@@ -1,6 +1,6 @@
 import copy
-import logging
-import os.path
+
+import logging  # noqa: LOG001
 
 import colorama
 
@@ -32,13 +32,6 @@ class PrettyFormatter(logging.Formatter):
         record_copy.threadName = "{}{}{}".format(color, record.threadName, colorama.Style.RESET_ALL)
         record_copy.msg = "{}{}{}".format(color, record.msg, colorama.Style.RESET_ALL)
 
-        # compute module name
-        # record_copy.pathname = (
-        #     record.pathname[len(os.path.commonprefix([record.pathname, PACKAGE_ROOT])) :]
-        #     .replace("/", ".")
-        #     .rstrip(".py")
-        # )
-
-        self._style._fmt = self._fmt
+        self._style._fmt = self._fmt  # noqa: SLF001
 
         return super(PrettyFormatter, self).format(record_copy)

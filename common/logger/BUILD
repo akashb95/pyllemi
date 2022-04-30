@@ -3,6 +3,6 @@ python_library(
     srcs = glob(["*.py"]),
     visibility = ["PUBLIC"],
     deps = [
-        "//third_party/python:colorama",
+        "//third_party/python3:colorama",
     ],
 )

@@ -1,10 +1,14 @@
 python_library(
     name = "imports",
-    srcs = glob(["*.py"], exclude=["_test.py"]),
+    srcs = glob(
+        ["*.py"],
+        exclude = ["_test.py"],
+    ),
     deps = [
+        "//adapters",
         "//common/logger",
-        "//imports/stdlib",
         "//converters",
+        "//imports/stdlib",
     ],
 )
 

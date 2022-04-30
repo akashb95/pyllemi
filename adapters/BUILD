@@ -1,8 +1,14 @@
+package(default_visibility = ["PUBLIC"])
+
 python_library(
     name = "adapters",
-    srcs = glob(["*.py"], exclude=["_test.py"]),
+    srcs = glob(
+        ["*.py"],
+        exclude = ["_test.py"],
+    ),
     deps = [
         "//common/logger",
+        "//utils",
     ],
 )
 

@@ -23,7 +23,9 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
         return
 
     def test_import_nodes(self):
-        node = ast.Import(names=[ast.alias(name="numpy.random", asname="rand"), ast.alias(name="os")])
+        node = ast.Import(
+            names=[ast.alias(name="numpy.random", asname="rand"), ast.alias(name="os")]
+        )
         self.assertEqual(["numpy.random", "os"], self.transformer.transform_all([node]))
         return
 
@@ -70,7 +72,9 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
         return
 
     def test_both_import_and_import_from_nodes(self):
-        import_node = ast.Import(names=[ast.alias(name="numpy.random", asname="rand"), ast.alias(name="os")])
+        import_node = ast.Import(
+            names=[ast.alias(name="numpy.random", asname="rand"), ast.alias(name="os")]
+        )
         absolute_import_from_node = ast.ImportFrom(
             module=self.test_dir,
             level=0,
@@ -80,7 +84,12 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
         # TODO: update assertion
 
         self.assertEqual(
-            ["numpy.random", "os", f"{self.test_dir}.test_module_0", f"{self.test_dir}.test_subpackage"],
+            [
+                "numpy.random",
+                "os",
+                f"{self.test_dir}.test_module_0",
+                f"{self.test_dir}.test_subpackage",
+            ],
             self.transformer.transform_all([import_node, absolute_import_from_node]),
         )
         return

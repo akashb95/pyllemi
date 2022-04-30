@@ -7,3 +7,9 @@ python_library(
         exclude = ["*_test.py"],
     ),
 )
+
+python_test(
+    name = "utils_test",
+    srcs = glob(["*_test.py"]),
+    deps = [":utils"],
+)
