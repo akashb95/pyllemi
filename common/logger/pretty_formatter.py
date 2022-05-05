@@ -1,6 +1,5 @@
 import copy
-
-import logging  # noqa: LOG001
+import logging
 
 import colorama
 

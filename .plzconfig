@@ -21,7 +21,7 @@ Timeout = 600
 default-docker-repo = registry.gitlab.com/delphi-lab/cerebrum
 
 [python]
-moduledir = third_party.python
+ModuleDir = third_party.python3
 DisableVendorFlags = True
 
 [alias "changes"]

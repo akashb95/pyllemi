@@ -3,6 +3,7 @@ import json
 import re
 import subprocess
 from collections import namedtuple
+from functools import cache, lru_cache
 from logging import INFO
 from typing import Any, AnyStr, IO, Optional
 
@@ -13,13 +14,14 @@ LOGGER = setup_logger(__file__, INFO)
 WhatInputsResult = namedtuple("WhatInputsResult", ["plz_targets", "targetless_paths"])
 
 
+@cache
 def get_config(specifier: str) -> list[str]:
     cmd = ["plz", "query", "config", specifier]
 
     LOGGER.debug(f"Getting plz config for {specifier}")
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    if proc.returncode != 0:
+    if not _is_success_return_code(proc.returncode):
         LOGGER.error(f"Got a non-zero return code while trying to fetch plz config for {specifier}")
         raise RuntimeError(proc.stderr)
 
@@ -30,6 +32,7 @@ def get_config(specifier: str) -> list[str]:
     return stdout
 
 
+@lru_cache(1)
 def get_python_moduledir() -> str:
     get_config_output = get_config("python.moduledir")
     assert len(get_config_output) == 1, (
@@ -39,9 +42,10 @@ def get_python_moduledir() -> str:
     return get_config_output[0]
 
 
+@cache
 def get_plz_build_graph(
-    pkg_dir: Optional[str] = None,
-    args: Optional[list[str]] = None,
+        pkg_dir: Optional[str] = None,
+        args: Optional[list[str]] = None,
 ) -> dict[str, Any]:
     cmd = ["plz", "query", "graph"]
     if pkg_dir is not None:
@@ -52,7 +56,7 @@ def get_plz_build_graph(
     LOGGER.debug(f"Getting plz build graph with: {' '.join(cmd)}")
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    if proc.returncode != 0:
+    if not _is_success_return_code(proc.returncode):
         LOGGER.error(
             "Got a non-zero return code while trying to fetch plz graph",
             exc_info=proc.stderr,
@@ -64,6 +68,7 @@ def get_plz_build_graph(
     return json.loads("".join(stdout))
 
 
+@cache
 def get_whatinputs(paths_from_reporoot: list[str]) -> WhatInputsResult:
     """
 
@@ -76,7 +81,7 @@ def get_whatinputs(paths_from_reporoot: list[str]) -> WhatInputsResult:
 
     cmd = ["plz", "whatinputs", *paths_from_reporoot]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    if proc.returncode != 0:
+    if not _is_success_return_code(proc.returncode):
         LOGGER.error(
             "Got a non-zero return code while trying to execute `plz whatinputs`",
             exc_info=proc.stderr,
@@ -103,10 +108,11 @@ def get_whatinputs(paths_from_reporoot: list[str]) -> WhatInputsResult:
     return WhatInputsResult(plz_targets, targetless_paths)
 
 
+@cache
 def get_reporoot() -> str:
     cmd = ["plz", "query", "reporoot"]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    if proc.returncode != 0:
+    if not _is_success_return_code(proc.returncode):
         LOGGER.error(
             "Got a non-zero return code while trying to fetch plz project root",
             exc_info=proc.stderr,
@@ -121,6 +127,7 @@ def get_reporoot() -> str:
     return stdout[0]
 
 
+@lru_cache(1)
 def get_third_party_modules() -> list[str]:
     return get_all_targets(
         [
@@ -134,14 +141,14 @@ def get_third_party_modules() -> list[str]:
 
 
 def get_all_targets(
-    plz_pkg_dirs: list[str],
-    query_args: Optional[list[str]] = None,
+        plz_pkg_dirs: list[str],
+        query_args: Optional[list[str]] = None,
 ) -> list[str]:
     query_args = [] if query_args is None else query_args
 
     cmd = ["plz", "query", "alltargets", *query_args, *plz_pkg_dirs]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    if proc.returncode != 0:
+    if not _is_success_return_code(proc.returncode):
         LOGGER.error(
             "Got a non-zero return code while trying to run `plz query alltargets`",
             exc_info=proc.stderr,

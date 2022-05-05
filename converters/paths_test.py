@@ -15,6 +15,12 @@ class TestConvertPyImportPathToOSPath(MockPythonLibraryTestCase):
         self.assertEqual(os.path.abspath(self.package_module), converted)
         return
 
+    def test_import_of_module_that_has_no_fspath(self):
+        py_import = "argparse.ArgumentParser"
+        converted = convert_py_import_path_to_os_path(py_import)
+        self.assertIsNone(converted)
+        return
+
     def test_import_of_package(self):
         py_import = f"{self.test_dir}.test_subpackage"
         converted = convert_py_import_path_to_os_path(py_import)

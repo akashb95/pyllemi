@@ -65,7 +65,14 @@ class ToAbsoluteImportPaths:
             # `from module_or_package import name`
             module_or_package = convert_py_import_path_to_os_path(node.module)
 
-            if is_module(module := os.path.join(module_or_package, name.name + ".py")):
+            # module_or_package not found in fspath This could mean the import is:
+            # * Erroneous; or
+            # * Is a 3rd-party module import; or
+            # * Is a builtin module import.
+            if module_or_package is None:
+                import_paths.append(node.module)
+
+            elif is_module(module := os.path.join(module_or_package, name.name + ".py")):
                 import_paths.append(
                     convert_os_path_to_import_path(module, self.abs_path_to_project_root)
                 )

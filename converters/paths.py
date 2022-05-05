@@ -1,13 +1,15 @@
 import os
+from typing import Optional
 
 
-def convert_py_import_path_to_os_path(py_import_path: str) -> str:
+def convert_py_import_path_to_os_path(py_import_path: str) -> Optional[str]:
     """
     `pkg.x` could be the following:
 
     1. pkg is a module, x is an object
     2. pkg is a directory, x is an importable file (module)
     3. pkg is a directory, x is a directory (subpackage)
+    4. Path to pkg cannot be found, possibly because it is a builtin/3rd-party module (returns None).
 
     Provided we know x is NOT an object, x can be a .pyi? file
     """

@@ -67,6 +67,18 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
                 self.assertEqual(subtest.expected_output, import_paths)
         return
 
+    def test_from_import_node(self):
+        node = ast.ImportFrom(
+            module="argparse",
+            level=0,
+            names=[ast.alias(name="ArgumentParser")],
+        )
+
+        import_paths = self.transformer.transform_all([node])
+        self.assertEqual(1, len(import_paths))
+        self.assertEqual("argparse", import_paths[0])
+        return
+
     def test_relative_imports_in_import_from_nodes(self):
         # TODO
         return

@@ -65,6 +65,8 @@ def run(path_to_pyfile: str):
 
         # TODO: find usages of subpackages and find innermost plz targets of such usages.
         # TODO: map custom lib imports to plz targets.
+
+        # TODO: output error logs when no targets found for imports.
         ...
 
     return

@@ -37,6 +37,7 @@ from ...pkg import module3, module4
         import_nodes = self.collator.collate_all(code=code)
 
         self.assertEqual(3, len(import_nodes))
+
         self.assertEqual(0, import_nodes[0].level)
         self.assertEqual("numpy", import_nodes[0].module)
         self.assertEqual(2, len(import_nodes[0].names))

@@ -6,10 +6,14 @@ python_library(
     ),
     deps = [
         "//common/logger",
+        "//adapters",
+        "//imports",
+        "//converters",
     ],
 )
 
 python_binary(
     name = "snaky",
-    main = ":snaky_lib",
-        )
+    main = "main.py",
+    deps = [":snaky_lib"],
+)
