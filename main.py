@@ -31,14 +31,14 @@ def run(path_to_pyfile: str):
     collator = NodesCollator()
     reporoot: str = get_reporoot()
     to_absolute_import_paths = ToAbsoluteImportPaths(reporoot)
-    custom_module_imports: list[str] = []
+    custom_module_imports: list[Import] = []
     third_party_module_imports: list[str] = []
     third_party_dep_targets: list[str] = []
     for import_node in collator.collate(code=code, path=path_to_pyfile):
         for abs_import_paths in to_absolute_import_paths.transform(import_node):
             for abs_import_path in abs_import_paths:
                 # Filter out stdlib modules.
-                top_level_module_name = get_top_level_module_name(abs_import_path)
+                top_level_module_name = get_top_level_module_name(abs_import_path.import_)
                 if top_level_module_name in std_lib_modules:
                     LOGGER.info(f"Found import of a standard lib module: {top_level_module_name}")
                     continue
@@ -49,7 +49,7 @@ def run(path_to_pyfile: str):
                     third_party_module_imports.append(top_level_module_name)
                     continue
 
-                LOGGER.info(f"Found import of a custom lib module: {abs_import_path}")
+                LOGGER.info(f"Found import of a custom lib module: {abs_import_path.import_}")
                 custom_module_imports.append(abs_import_path)
 
         third_party_dep_targets.extend(

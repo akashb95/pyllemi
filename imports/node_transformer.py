@@ -3,9 +3,8 @@ import os.path
 from dataclasses import dataclass
 from typing import Collection, Iterator
 
-from imports.common import (
-    IMPORT_NODE_TYPE,
-)
+from imports.common import IMPORT_NODE_TYPE
+from imports.py_import import Import, ImportType, resolve_import_type
 from utils.path_finders import is_module, is_subpackage
 from converters.paths import (
     convert_py_import_path_to_os_path,
@@ -18,7 +17,7 @@ class ToAbsoluteImportPaths:
     # Only required for computing absolute import paths from relative imports
     abs_path_to_project_root: str
 
-    def transform(self, node: IMPORT_NODE_TYPE, *, pyfile_path: str = "") -> Iterator[list[str]]:
+    def transform(self, node: IMPORT_NODE_TYPE, *, pyfile_path: str = "") -> Iterator[list[Import]]:
         if isinstance(node, ast.Import):
             yield self._import_node(node)
 
@@ -35,8 +34,8 @@ class ToAbsoluteImportPaths:
                 f"can only transform nodes of type Import and ImportFrom; got {type(node).__name__}"
             )
 
-    def transform_all(self, nodes: Collection[IMPORT_NODE_TYPE]) -> list[str]:
-        import_paths: list[str] = []
+    def transform_all(self, nodes: Collection[IMPORT_NODE_TYPE]) -> list[Import]:
+        import_paths: list[Import] = []
         for node in nodes:
             for import_path in self.transform(node):
                 import_paths.extend(import_path)
@@ -44,13 +43,13 @@ class ToAbsoluteImportPaths:
         return import_paths
 
     @staticmethod
-    def _import_node(node: ast.Import) -> list[str]:
+    def _import_node(node: ast.Import) -> list[Import]:
         import_paths = []
         for alias in node.names:
-            import_paths.append(alias.name)
+            import_paths.append(Import(alias.name, resolve_import_type(alias.name)))
         return import_paths
 
-    def _import_from_node(self, node: ast.ImportFrom, pyfile_path: str = "") -> list[str]:
+    def _import_from_node(self, node: ast.ImportFrom, pyfile_path: str = "") -> list[Import]:
         if node.level > 0 and pyfile_path == "":
             # Cannot compute absolute import path from relative import path
             # if path of Python module is not provided.
@@ -60,35 +59,32 @@ class ToAbsoluteImportPaths:
             return self._relative_import(node, pyfile_path)
 
         # from <> import <>
-        import_paths: list[str] = []
+        import_paths: list[Import] = []
         for name in node.names:
-            # `from module_or_package import name`
-            module_or_package = convert_py_import_path_to_os_path(node.module)
+            import_type = resolve_import_type(node.module)
 
-            # module_or_package not found in fspath This could mean the import is:
-            # * Erroneous; or
-            # * Is a 3rd-party module import; or
-            # * Is a builtin module import.
-            if module_or_package is None:
-                import_paths.append(node.module)
+            if import_type == ImportType.UNKNOWN:
+                # If import is:
+                # * Erroneous; or
+                # * Is a 3rd-party module import; or
+                # * Is a builtin module import.
+                import_paths.append(Import(node.module, import_type))
+                continue
 
-            elif is_module(module := os.path.join(module_or_package, name.name + ".py")):
-                import_paths.append(
-                    convert_os_path_to_import_path(module, self.abs_path_to_project_root)
-                )
+            if import_type == ImportType.MODULE:
+                import_paths.append(Import(node.module, ImportType.MODULE))
+                continue
 
-            elif is_subpackage(subpackage := os.path.join(module_or_package, name.name)):
-                import_paths.append(
-                    convert_os_path_to_import_path(subpackage, self.abs_path_to_project_root)
-                )
-
-            elif is_subpackage(module_or_package) or is_module(module_or_package):
-                # If `module_or_package` is a module or package, and `name` is an object.
-                import_paths.append(node.module)
+            # At this point, the node.module must lead to a package.
+            # Ascertain import type of `package.name`.
+            full_import = ".".join([node.module, name.name])
+            full_import_type = resolve_import_type(full_import)
+            import_paths.append(Import(full_import, full_import_type))
 
         return import_paths
 
-    def _relative_import(self, node: ast.ImportFrom, pyfile_path: str) -> list[str]:
+
+    def _relative_import(self, node: ast.ImportFrom, pyfile_path: str) -> list[Import]:
         relative_import_dir = os.path.abspath(
             os.path.join(
                 # Find absolute path to containing package.
@@ -105,9 +101,9 @@ class ToAbsoluteImportPaths:
         # TODO: implement
         relative_import_pkg = (  # noqa: F841
             os.path.splitext(relative_import_dir)[0]
-            .removeprefix(self.abs_path_to_project_root)
-            .lstrip(os.path.sep)
-            .replace(os.path.sep, ".")
+                .removeprefix(self.abs_path_to_project_root)
+                .lstrip(os.path.sep)
+                .replace(os.path.sep, ".")
         )
 
         # from . import <>

@@ -2,8 +2,9 @@ import ast
 import os
 from collections import namedtuple
 
-from utils.mock_python_library_test_case import MockPythonLibraryTestCase
 from imports.node_transformer import ToAbsoluteImportPaths
+from imports.py_import import Import, ImportType
+from utils.mock_python_library_test_case import MockPythonLibraryTestCase
 
 
 class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
@@ -26,7 +27,10 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
         node = ast.Import(
             names=[ast.alias(name="numpy.random", asname="rand"), ast.alias(name="os")]
         )
-        self.assertEqual(["numpy.random", "os"], self.transformer.transform_all([node]))
+        self.assertEqual(
+            [Import("numpy.random", ImportType.UNKNOWN), Import("os", ImportType.UNKNOWN)],
+            self.transformer.transform_all([node]),
+        )
         return
 
     def test_absolute_imports_in_import_from_nodes(self):
@@ -39,7 +43,7 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
                     level=0,
                     names=[ast.alias(name="test_module_1")],
                 ),
-                expected_output=[f"{self.test_dir}.test_subpackage.test_module_1"],
+                expected_output=[Import(f"{self.test_dir}.test_subpackage.test_module_1", ImportType.MODULE)],
             ),
             SubTest(
                 name="import subpackage from package",
@@ -48,16 +52,16 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
                     level=0,
                     names=[ast.alias(name="test_subpackage")],
                 ),
-                expected_output=[f"{self.test_dir}.test_subpackage"],
+                expected_output=[Import(f"{self.test_dir}.test_subpackage", ImportType.PACKAGE)],
             ),
             SubTest(
                 name="import object from module",
                 node=ast.ImportFrom(
-                    module=self.test_dir,
+                    module=f"{self.test_dir}.test_module_0",
                     level=0,
-                    names=[ast.alias(name="test_module_0")],
+                    names=[ast.alias(name="Object")],
                 ),
-                expected_output=[f"{self.test_dir}.test_module_0"],
+                expected_output=[Import(f"{self.test_dir}.test_module_0", ImportType.MODULE)],
             ),
         ]
 
@@ -67,16 +71,18 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
                 self.assertEqual(subtest.expected_output, import_paths)
         return
 
-    def test_from_import_node(self):
+    def test_import_from_node_with_builtin_module(self):
         node = ast.ImportFrom(
             module="argparse",
             level=0,
             names=[ast.alias(name="ArgumentParser")],
         )
 
-        import_paths = self.transformer.transform_all([node])
-        self.assertEqual(1, len(import_paths))
-        self.assertEqual("argparse", import_paths[0])
+        self.assertEqual(
+            [Import("argparse", ImportType.UNKNOWN)],
+            self.transformer.transform_all([node]),
+        )
+
         return
 
     def test_relative_imports_in_import_from_nodes(self):
@@ -97,10 +103,10 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
 
         self.assertEqual(
             [
-                "numpy.random",
-                "os",
-                f"{self.test_dir}.test_module_0",
-                f"{self.test_dir}.test_subpackage",
+                Import("numpy.random", ImportType.UNKNOWN),
+                Import("os", ImportType.UNKNOWN),
+                Import(f"{self.test_dir}.test_module_0", ImportType.MODULE),
+                Import(f"{self.test_dir}.test_subpackage", ImportType.PACKAGE),
             ],
             self.transformer.transform_all([import_node, absolute_import_from_node]),
         )

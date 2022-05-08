@@ -2,6 +2,8 @@ import os
 from typing import Optional
 
 
+# DEPRECATED
+# TODO: delete in favour of using imports.py_import.resolve_import_type()
 def convert_py_import_path_to_os_path(py_import_path: str) -> Optional[str]:
     """
     `pkg.x` could be the following:

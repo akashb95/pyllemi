@@ -213,5 +213,7 @@ class TestGetPlzBuildGraph(TestCase):
         self.assertRaises(
             RuntimeError,
             get_plz_build_graph,
+            # This is to stop the cache from returning the result from a previous call.
+            "//pkg/dir/y",
         )
         return

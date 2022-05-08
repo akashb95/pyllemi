@@ -68,7 +68,6 @@ def get_plz_build_graph(
     return json.loads("".join(stdout))
 
 
-@cache
 def get_whatinputs(paths_from_reporoot: list[str]) -> WhatInputsResult:
     """
 
