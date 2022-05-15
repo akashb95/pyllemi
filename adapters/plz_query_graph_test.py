@@ -4,7 +4,7 @@ from unittest import TestCase, mock
 from adapters.plz_query_graph import (
     get_all_targets,
     get_config,
-    get_third_party_modules,
+    get_third_party_module_targets,
     get_plz_build_graph,
     get_reporoot,
     get_whatinputs,
@@ -38,7 +38,7 @@ class TestGetThirdPartyModules(TestCase):
     ):
         mock_get_config.return_value = ["third_party.python"]
         mock_get_all_targets.return_value = ["//third_party/python:a", "//third_party/python:b"]
-        third_party_modules = get_third_party_modules()
+        third_party_modules = get_third_party_module_targets()
         mock_get_config.assert_called_once_with("python.moduledir")
         mock_get_all_targets.assert_called_once_with([os.path.join("third_party", "python", "...")])
         self.assertEqual(
@@ -51,7 +51,7 @@ class TestGetThirdPartyModules(TestCase):
     def test_errors_when_get_config_returns_no_values(self, mock_get_config):
         mock_get_config.return_value = []
         with self.assertRaises(AssertionError):
-            get_third_party_modules()
+            get_third_party_module_targets()
         return
 
     @mock.patch("adapters.plz_query_graph.get_config")
@@ -61,7 +61,7 @@ class TestGetThirdPartyModules(TestCase):
     ):
         mock_get_config.return_value = []
         with self.assertRaises(AssertionError):
-            get_third_party_modules()
+            get_third_party_module_targets()
         return
 
 

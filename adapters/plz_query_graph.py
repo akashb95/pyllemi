@@ -127,11 +127,11 @@ def get_reporoot() -> str:
 
 
 @lru_cache(1)
-def get_third_party_modules() -> list[str]:
+def get_third_party_module_targets() -> list[str]:
     return get_all_targets(
         [
-            # Convert third_party.moduledir -> third_party/moduledir/...
             os.path.join(
+                # Convert third_party.moduledir -> third_party/moduledir/...
                 get_python_moduledir().replace(".", os.path.sep),
                 "...",
             )

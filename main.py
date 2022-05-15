@@ -9,7 +9,7 @@ from imports.nodes_collator import NodesCollator
 from adapters.plz_query_graph import (
     get_python_moduledir,
     get_reporoot,
-    get_third_party_modules,
+    get_third_party_module_targets,
 )
 from imports.node_transformer import ToAbsoluteImportPaths
 from converters.build_targets import third_party_import_to_plz_target
@@ -20,7 +20,7 @@ THIRD_PARTY_PKG_DIR_PATH = os.path.join("third_party", "python3")
 
 def run(path_to_pyfile: str):
     # Get 3rd Party libs and builtins
-    third_party_modules: set[str] = set(get_third_party_modules())
+    third_party_modules_targets: set[str] = set(get_third_party_module_targets())
     std_lib_modules: set[str] = get_stdlib_module_names()
 
     # Read pyfile.
@@ -44,7 +44,7 @@ def run(path_to_pyfile: str):
                     continue
 
                 # If import is a 3rd party library, then only the top-level module name is required.
-                if top_level_module_name in third_party_modules:
+                if top_level_module_name in third_party_modules_targets:
                     LOGGER.info(f"Found import of a third party module: {top_level_module_name}")
                     third_party_module_imports.append(top_level_module_name)
                     continue
