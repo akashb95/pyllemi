@@ -24,7 +24,10 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.9.10'
+          architecture: 'x64'
       # Runs a single command using the runners shell
       - name: Run plz cover
         run: |
