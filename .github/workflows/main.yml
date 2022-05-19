@@ -33,5 +33,5 @@ jobs:
         run: |
           which python
           python --version
-          # cd $GITHUB_WORKSPACE
-          # ./pleasew cover
+          cd $GITHUB_WORKSPACE
+          ./pleasew cover --profile ci

@@ -68,17 +68,17 @@ def get_plz_build_graph(
     return json.loads("".join(stdout))
 
 
-def get_whatinputs(paths_from_reporoot: list[str]) -> WhatInputsResult:
+def get_whatinputs(glob_paths: list[str]) -> WhatInputsResult:
     """
 
-    :param paths_from_reporoot: a Collection of paths to python modules.
+    :param glob_paths: a Collection of paths to python modules.
     :return: a list of plz targets
     """
 
-    if len(paths_from_reporoot) == 0:
+    if len(glob_paths) == 0:
         return WhatInputsResult([], [])
 
-    cmd = ["plz", "whatinputs", *paths_from_reporoot]
+    cmd = ["plz", "query", "whatinputs", *glob_paths]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     if not _is_success_return_code(proc.returncode):
         LOGGER.error(
@@ -92,14 +92,14 @@ def get_whatinputs(paths_from_reporoot: list[str]) -> WhatInputsResult:
     targetless_path_msg_pattern = re.compile(
         r"Error: '(.+)' is not a source to any current target",
     )
-    plz_targets: list[str] = []
-    targetless_paths: list[str] = []
+    plz_targets: set[str] = set()
+    targetless_paths: set[str] = set()
     for line in stdout:
-        if (match := targetless_path_msg_pattern.match(line)) is not None:
-            targetless_paths.append(match.group(1))
+        if (targetless_path_match := targetless_path_msg_pattern.match(line)) is not None:
+            targetless_paths.add(targetless_path_match.group(1))
 
         elif line.startswith("//"):
-            plz_targets.append(line)
+            plz_targets.add(line)
 
         else:
             LOGGER.warning(f"plz whatinputs got unexpected output in stdout: {line}")

@@ -2,20 +2,22 @@ import os
 from argparse import ArgumentParser
 from logging import INFO
 
+import colorama
+
 from common.logger.logger import setup_logger
 from adapters.custom_arg_types import existing_file_arg_type
+from imports.py_import import Import
 from imports.stdlib_modules import get_stdlib_module_names
 from imports.nodes_collator import NodesCollator
 from adapters.plz_query_graph import (
     get_python_moduledir,
     get_reporoot,
     get_third_party_module_targets,
+    get_whatinputs,
 )
-from imports.node_transformer import ToAbsoluteImportPaths
-from converters.build_targets import third_party_import_to_plz_target
+from imports.node_transformer import ToAbsoluteImports
 
 LOGGER = setup_logger(__file__, INFO)
-THIRD_PARTY_PKG_DIR_PATH = os.path.join("third_party", "python3")
 
 
 def run(path_to_pyfile: str):
@@ -30,50 +32,63 @@ def run(path_to_pyfile: str):
     # Get import nodes from Python file
     collator = NodesCollator()
     reporoot: str = get_reporoot()
-    to_absolute_import_paths = ToAbsoluteImportPaths(reporoot)
+
+    # Convert import nodes to plz targets
+    to_absolute_imports = ToAbsoluteImports(reporoot)
     custom_module_imports: list[Import] = []
-    third_party_module_imports: list[str] = []
-    third_party_dep_targets: list[str] = []
+    third_party_module_imports: set[str] = set()
+    custom_module_targets: set[str] = set()
+    custom_module_sources_without_targets: set[str] = set()
     for import_node in collator.collate(code=code, path=path_to_pyfile):
-        for abs_import_paths in to_absolute_import_paths.transform(import_node):
-            for abs_import_path in abs_import_paths:
+        for abs_imports in to_absolute_imports.transform(import_node):
+            for abs_import in abs_imports:
                 # Filter out stdlib modules.
-                top_level_module_name = get_top_level_module_name(abs_import_path.import_)
+                top_level_module_name = get_top_level_module_name(abs_import.import_)
                 if top_level_module_name in std_lib_modules:
                     LOGGER.info(f"Found import of a standard lib module: {top_level_module_name}")
                     continue
 
-                # If import is a 3rd party library, then only the top-level module name is required.
-                if top_level_module_name in third_party_modules_targets:
-                    LOGGER.info(f"Found import of a third party module: {top_level_module_name}")
-                    third_party_module_imports.append(top_level_module_name)
+                # Resolve 3rd-party library targets.
+                possible_third_party_module_target = (
+                    f"//{get_python_moduledir().replace('.', '/')}:{top_level_module_name}"
+                )
+                if possible_third_party_module_target in third_party_modules_targets:
+                    third_party_module_imports.add(possible_third_party_module_target)
                     continue
 
-                LOGGER.info(f"Found import of a custom lib module: {abs_import_path.import_}")
-                custom_module_imports.append(abs_import_path)
+                LOGGER.debug(f"Found import of a custom lib module: {abs_import.import_}")
+                custom_module_imports.append(abs_import)
 
-        third_party_dep_targets.extend(
-            list(
-                map(
-                    lambda x: third_party_import_to_plz_target(x, get_python_moduledir()),
-                    third_party_module_imports,
-                )
-            ),
-        )
-        for target in third_party_dep_targets:
-            LOGGER.info(f"Third party dep found: {target}")
+                if (whatinputs_input := abs_import.to_whatinputs_input()) is not None:
+                    whatinputs_result = get_whatinputs([whatinputs_input])
+                    custom_module_targets |= whatinputs_result.plz_targets
+                    custom_module_sources_without_targets |= whatinputs_result.targetless_paths
+
+    for target in third_party_modules_targets:
+        LOGGER.info(f"Third party dep found: {target}")
+
+    for target in custom_module_targets:
+        LOGGER.info(f"Custom lib dep found: {target}")
+
+    for target in custom_module_sources_without_targets:
+        LOGGER.info(f"Import does not have a plz target: {target}")
 
         # TODO: find usages of subpackages and find innermost plz targets of such usages.
-        # TODO: map custom lib imports to plz targets.
 
         # TODO: output error logs when no targets found for imports.
         ...
+
+    LOGGER.info(targets_as_deps(list(third_party_modules_targets) + list(custom_module_targets)))
 
     return
 
 
 def get_top_level_module_name(abs_import_path: str) -> str:
     return abs_import_path.split(".", maxsplit=1)[0] if "." in abs_import_path else abs_import_path
+
+
+def targets_as_deps(targets):
+    return "deps = {}".format(targets).replace("'", '"')
 
 
 if __name__ == "__main__":

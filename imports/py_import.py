@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 from dataclasses import dataclass
 from enum import IntEnum, unique
@@ -18,6 +19,24 @@ class Import:
 
     def __eq__(self, other: "Import") -> bool:
         return self.import_ == other.import_ and self.type_ == other.type_
+
+    def to_whatinputs_input(self) -> Optional[str]:
+        """
+        Output depends on the Import type.
+
+        For ImportType.MODULE, the output is a `.py` file.
+        For ImportType.PACKAGE, the output is a glob matching `**/*.py` under the given (Python) package.
+        For anything else, return None.
+        """
+
+        os_path_from_reporoot = self.import_.replace(".", os.path.sep)
+        if self.type_ == ImportType.MODULE:
+            return os_path_from_reporoot + ".py"
+
+        if self.type_ == ImportType.PACKAGE:
+            return os.path.join(os_path_from_reporoot, "**", "*.py")
+
+        return None
 
 
 def resolve_import_type(py_import_path: str) -> ImportType:

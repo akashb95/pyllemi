@@ -2,7 +2,7 @@ import ast
 import os
 from collections import namedtuple
 
-from imports.node_transformer import ToAbsoluteImportPaths
+from imports.node_transformer import ToAbsoluteImports
 from imports.py_import import Import, ImportType
 from utils.mock_python_library_test_case import MockPythonLibraryTestCase
 
@@ -10,7 +10,7 @@ from utils.mock_python_library_test_case import MockPythonLibraryTestCase
 class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.transformer = ToAbsoluteImportPaths(os.getcwd())
+        self.transformer = ToAbsoluteImports(os.getcwd())
         return
 
     def test_when_input_is_unexpected_ast_node_type(self):

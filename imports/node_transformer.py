@@ -13,7 +13,7 @@ from converters.paths import (
 
 
 @dataclass
-class ToAbsoluteImportPaths:
+class ToAbsoluteImports:
     # Only required for computing absolute import paths from relative imports
     abs_path_to_project_root: str
 
@@ -82,7 +82,6 @@ class ToAbsoluteImportPaths:
             import_paths.append(Import(full_import, full_import_type))
 
         return import_paths
-
 
     def _relative_import(self, node: ast.ImportFrom, pyfile_path: str) -> list[Import]:
         relative_import_dir = os.path.abspath(
