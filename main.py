@@ -2,8 +2,6 @@ import os
 from argparse import ArgumentParser
 from logging import INFO
 
-import colorama
-
 from common.logger.logger import setup_logger
 from adapters.custom_arg_types import existing_file_arg_type
 from imports.py_import import Import
