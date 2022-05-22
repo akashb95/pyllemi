@@ -95,8 +95,8 @@ class TestGetWhatInputs(TestCase):
         mock_subprocess_popen.return_value = process_mock
 
         expected_output = WhatInputsResult(
-            plz_targets=["//path/to/pkg:target", "//path/to/other_pkg:target"],
-            targetless_paths=[],
+            plz_targets={"//path/to/pkg:target", "//path/to/other_pkg:target"},
+            targetless_paths=set(),
         )
 
         self.assertEqual(
@@ -117,8 +117,8 @@ class TestGetWhatInputs(TestCase):
         mock_subprocess_popen.return_value = process_mock
 
         expected_output = WhatInputsResult(
-            plz_targets=[],
-            targetless_paths=["path/to/pkg/module.py", "path/to/other_pkg/module.py"],
+            plz_targets=set(),
+            targetless_paths={"path/to/pkg/module.py", "path/to/other_pkg/module.py"},
         )
         self.assertEqual(
             expected_output,
@@ -138,8 +138,8 @@ class TestGetWhatInputs(TestCase):
         mock_subprocess_popen.return_value = process_mock
 
         expected_output = WhatInputsResult(
-            plz_targets=["//path/to/pkg:target"],
-            targetless_paths=["path/to/other_pkg/module.py"],
+            plz_targets={"//path/to/pkg:target"},
+            targetless_paths={"path/to/other_pkg/module.py"},
         )
         self.assertEqual(
             expected_output,

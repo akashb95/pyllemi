@@ -3,8 +3,9 @@ from argparse import ArgumentParser
 from logging import INFO
 
 from common.logger.logger import setup_logger
+from converters.converters import convert_os_path_to_import_path
 from adapters.custom_arg_types import existing_file_arg_type
-from imports.py_import import Import
+from imports.py_import import Import, to_whatinputs_input
 from imports.stdlib_modules import get_stdlib_module_names
 from imports.nodes_collator import NodesCollator
 from adapters.plz_query_graph import (
@@ -47,8 +48,8 @@ def run(path_to_pyfile: str):
                     continue
 
                 # Resolve 3rd-party library targets.
-                possible_third_party_module_target = (
-                    f"//{get_python_moduledir().replace('.', '/')}:{top_level_module_name}"
+                possible_third_party_module_target = convert_os_path_to_import_path(
+                    f"{get_python_moduledir()}.{top_level_module_name}",
                 )
                 if possible_third_party_module_target in third_party_modules_targets:
                     third_party_module_imports.add(possible_third_party_module_target)
@@ -57,8 +58,8 @@ def run(path_to_pyfile: str):
                 LOGGER.debug(f"Found import of a custom lib module: {abs_import.import_}")
                 custom_module_imports.append(abs_import)
 
-                if (whatinputs_input := abs_import.to_whatinputs_input()) is not None:
-                    whatinputs_result = get_whatinputs([whatinputs_input])
+                if (whatinputs_input := to_whatinputs_input(abs_import)) is not None:
+                    whatinputs_result = get_whatinputs(whatinputs_input)
                     custom_module_targets |= whatinputs_result.plz_targets
                     custom_module_sources_without_targets |= whatinputs_result.targetless_paths
 

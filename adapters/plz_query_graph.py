@@ -76,7 +76,7 @@ def get_whatinputs(glob_paths: list[str]) -> WhatInputsResult:
     """
 
     if len(glob_paths) == 0:
-        return WhatInputsResult([], [])
+        return WhatInputsResult(set(), set())
 
     cmd = ["plz", "query", "whatinputs", *glob_paths]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)

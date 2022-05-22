@@ -5,11 +5,6 @@ from typing import Collection, Iterator
 
 from imports.common import IMPORT_NODE_TYPE
 from imports.py_import import Import, ImportType, resolve_import_type
-from utils.path_finders import is_module, is_subpackage
-from converters.paths import (
-    convert_py_import_path_to_os_path,
-    convert_os_path_to_import_path,
-)
 
 
 @dataclass
@@ -73,6 +68,10 @@ class ToAbsoluteImports:
 
             if import_type == ImportType.MODULE:
                 import_paths.append(Import(node.module, ImportType.MODULE))
+                continue
+
+            if import_type == ImportType.STUB:
+                import_paths.append(Import(node.module, ImportType.STUB))
                 continue
 
             # At this point, the node.module must lead to a package.
