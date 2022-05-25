@@ -10,14 +10,14 @@ class TestResolveImportType(MockPythonLibraryTestCase):
         py_import = f"{self.test_dir}.test_module_0"
         self.assertEqual(
             ImportType.MODULE,
-            resolve_import_type(py_import),
+            resolve_import_type(py_import, "does.not.matter"),
         )
         return
 
     def test_builtin_module_import(self):
         self.assertEqual(
             ImportType.UNKNOWN,
-            resolve_import_type("os.path"),
+            resolve_import_type("os.path", "does.not.matter"),
         )
         return
 
@@ -25,7 +25,7 @@ class TestResolveImportType(MockPythonLibraryTestCase):
         py_import = f"{self.test_dir}.test_subpackage"
         self.assertEqual(
             ImportType.PACKAGE,
-            resolve_import_type(py_import),
+            resolve_import_type(py_import, "does.not.matter"),
         )
         return
 

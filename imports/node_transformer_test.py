@@ -10,7 +10,7 @@ from utils.mock_python_library_test_case import MockPythonLibraryTestCase
 class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.transformer = ToAbsoluteImports(os.getcwd())
+        self.transformer = ToAbsoluteImports(os.getcwd(), "third_party.python3")
         return
 
     def test_when_input_is_unexpected_ast_node_type(self):
@@ -29,6 +29,30 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
         )
         self.assertEqual(
             [Import("numpy.random", ImportType.UNKNOWN), Import("os", ImportType.UNKNOWN)],
+            self.transformer.transform_all([node]),
+        )
+        return
+
+    def test_import_node_when_specifying_moduledir_in_third_party_import(self):
+        node = ast.Import(
+            names=[ast.alias(name="third_party.python3.numpy.random", asname="rand")],
+        )
+
+        self.assertEqual(
+            [Import("numpy", ImportType.THIRD_PARTY_MODULE)],
+            self.transformer.transform_all([node]),
+        )
+        return
+
+    def test_import_from_node_when_specifying_moduledir_in_third_party_import(self):
+        node = ast.ImportFrom(
+            module="third_party.python3.numpy.random",
+            level=0,
+            names=[ast.alias(name="Object")],
+        )
+
+        self.assertEqual(
+            [Import("numpy", ImportType.THIRD_PARTY_MODULE)],
             self.transformer.transform_all([node]),
         )
         return

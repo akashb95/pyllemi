@@ -11,6 +11,7 @@ class ImportType(IntEnum):
     MODULE = 1
     PACKAGE = 2
     STUB = 3
+    THIRD_PARTY_MODULE = 4
 
 
 @dataclass
@@ -23,10 +24,10 @@ class Import:
         return self.import_ == other.import_ and self.type_ == other.type_
 
 
-def resolve_import_type(py_import_path: str) -> ImportType:
+def resolve_import_type(py_import_path: str, python_moduledir: str) -> ImportType:
     """
     Given a Python import path (such as `x.y.z`), determine whether the import path
-    leads to a module or package, or if it is unknown (cannot be determined by
+    leads to a module, or package, or a third party module, or if it is unknown (cannot be determined by
     checking the filesystem).
 
     If unknown, this could be because the import is:
@@ -34,6 +35,10 @@ def resolve_import_type(py_import_path: str) -> ImportType:
     * Is a 3rd-party module import; or
     * Is a builtin module import.
     """
+
+    # Check if import path leads to Python moduledir as defined in Please config.
+    if py_import_path.removeprefix(python_moduledir) != py_import_path:
+        return ImportType.THIRD_PARTY_MODULE
 
     filename_or_dirname = os.path.abspath(py_import_path.replace(".", os.path.sep))
 

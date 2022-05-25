@@ -11,6 +11,7 @@ from imports.py_import import Import, ImportType, resolve_import_type
 class ToAbsoluteImports:
     # Only required for computing absolute import paths from relative imports
     abs_path_to_project_root: str
+    python_moduledir: str
 
     def transform(self, node: IMPORT_NODE_TYPE, *, pyfile_path: str = "") -> Iterator[list[Import]]:
         if isinstance(node, ast.Import):
@@ -37,11 +38,16 @@ class ToAbsoluteImports:
 
         return import_paths
 
-    @staticmethod
-    def _import_node(node: ast.Import) -> list[Import]:
+    def _import_node(self, node: ast.Import) -> list[Import]:
         import_paths = []
         for alias in node.names:
-            import_paths.append(Import(alias.name, resolve_import_type(alias.name)))
+            import_path = alias.name
+
+            import_type = resolve_import_type(alias.name, self.python_moduledir)
+            if import_type == ImportType.THIRD_PARTY_MODULE:
+                import_path = import_path.removeprefix(f"{self.python_moduledir}.").split(".", maxsplit=1)[0]
+
+            import_paths.append(Import(import_path, import_type))
         return import_paths
 
     def _import_from_node(self, node: ast.ImportFrom, pyfile_path: str = "") -> list[Import]:
@@ -56,13 +62,20 @@ class ToAbsoluteImports:
         # from <> import <>
         import_paths: list[Import] = []
         for name in node.names:
-            import_type = resolve_import_type(node.module)
+            import_type = resolve_import_type(node.module, self.python_moduledir)
+
+            if import_type == ImportType.THIRD_PARTY_MODULE:
+                import_paths.append(
+                    Import(
+                        # Because we know it's a third-party module, only return the top-level module name.
+                        # E.g. `import third_party.python3.numpy.random.x` becomes simply `numpy`.
+                        node.module.removeprefix(f"{self.python_moduledir}.").split(".", maxsplit=1)[0],
+                        import_type,
+                    ),
+                )
+                continue
 
             if import_type == ImportType.UNKNOWN:
-                # If import is:
-                # * Erroneous; or
-                # * Is a 3rd-party module import; or
-                # * Is a builtin module import.
                 import_paths.append(Import(node.module, import_type))
                 continue
 
@@ -77,7 +90,7 @@ class ToAbsoluteImports:
             # At this point, the node.module must lead to a package.
             # Ascertain import type of `package.name`.
             full_import = ".".join([node.module, name.name])
-            full_import_type = resolve_import_type(full_import)
+            full_import_type = resolve_import_type(full_import, self.python_moduledir)
             import_paths.append(Import(full_import, full_import_type))
 
         return import_paths

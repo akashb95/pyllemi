@@ -3,7 +3,6 @@ from argparse import ArgumentParser
 from logging import INFO
 
 from common.logger.logger import setup_logger
-from converters.converters import convert_os_path_to_import_path
 from adapters.custom_arg_types import existing_file_arg_type
 from imports.py_import import Import, to_whatinputs_input
 from imports.stdlib_modules import get_stdlib_module_names
@@ -33,14 +32,17 @@ def run(path_to_pyfile: str):
     reporoot: str = get_reporoot()
 
     # Convert import nodes to plz targets
-    to_absolute_imports = ToAbsoluteImports(reporoot)
+    to_absolute_imports = ToAbsoluteImports(reporoot, get_python_moduledir())
     custom_module_imports: list[Import] = []
     third_party_module_imports: set[str] = set()
     custom_module_targets: set[str] = set()
     custom_module_sources_without_targets: set[str] = set()
+
     for import_node in collator.collate(code=code, path=path_to_pyfile):
+        # TODO: refactor into PlzTargetResolver
         for abs_imports in to_absolute_imports.transform(import_node):
             for abs_import in abs_imports:
+
                 # Filter out stdlib modules.
                 top_level_module_name = get_top_level_module_name(abs_import.import_)
                 if top_level_module_name in std_lib_modules:
@@ -48,8 +50,8 @@ def run(path_to_pyfile: str):
                     continue
 
                 # Resolve 3rd-party library targets.
-                possible_third_party_module_target = convert_os_path_to_import_path(
-                    f"{get_python_moduledir()}.{top_level_module_name}",
+                possible_third_party_module_target = (
+                    f"//{get_python_moduledir()}:{top_level_module_name}".replace(".", "/")
                 )
                 if possible_third_party_module_target in third_party_modules_targets:
                     third_party_module_imports.add(possible_third_party_module_target)
@@ -63,21 +65,15 @@ def run(path_to_pyfile: str):
                     custom_module_targets |= whatinputs_result.plz_targets
                     custom_module_sources_without_targets |= whatinputs_result.targetless_paths
 
-    for target in third_party_modules_targets:
-        LOGGER.info(f"Third party dep found: {target}")
-
-    for target in custom_module_targets:
-        LOGGER.info(f"Custom lib dep found: {target}")
-
     for target in custom_module_sources_without_targets:
-        LOGGER.info(f"Import does not have a plz target: {target}")
+        LOGGER.warning(f"Import does not have a plz target: {target}")
 
         # TODO: find usages of subpackages and find innermost plz targets of such usages.
 
         # TODO: output error logs when no targets found for imports.
         ...
 
-    LOGGER.info(targets_as_deps(list(third_party_modules_targets) + list(custom_module_targets)))
+    LOGGER.info(targets_as_deps(list(third_party_module_imports) + list(custom_module_targets)))
 
     return
 
