@@ -30,17 +30,18 @@ class ToAbsoluteImports:
                 f"can only transform nodes of type Import and ImportFrom; got {type(node).__name__}"
             )
 
-    def transform_all(self, nodes: Collection[IMPORT_NODE_TYPE]) -> list[Import]:
-        import_paths: list[Import] = []
+    def transform_all(self, nodes: Collection[IMPORT_NODE_TYPE], *, pyfile_path: str = "") -> list[Import]:
+        imports: list[Import] = []
         for node in nodes:
-            for import_path in self.transform(node):
-                import_paths.extend(import_path)
+            for import_path in self.transform(node, pyfile_path=pyfile_path):
+                imports.extend(import_path)
 
-        return import_paths
+        return imports
 
     def _import_node(self, node: ast.Import) -> list[Import]:
         import_paths = []
         for alias in node.names:
+            # TODO: use self._resolve_import_from_import_path_candidate
             import_path = alias.name
 
             import_type = resolve_import_type(alias.name, self.python_moduledir)
@@ -56,46 +57,45 @@ class ToAbsoluteImports:
             # if path of Python module is not provided.
             raise ValueError("pyfile_path cannot be empty for relative imports")
 
+        imports: list[Import] = []
         if node.level > 0:
-            return self._relative_import(node, pyfile_path)
+            raise NotImplementedError
+            # transformed_ast_node = self._relative_import_from_node_to_absolute_import_from_node(node, pyfile_path)
+            # for node in transformed_ast_node:
+            #     imports.extend(self._import_from_node(node, pyfile_path))
 
         # from <> import <>
-        import_paths: list[Import] = []
         for name in node.names:
-            import_type = resolve_import_type(node.module, self.python_moduledir)
-
-            if import_type == ImportType.THIRD_PARTY_MODULE:
-                import_paths.append(
-                    Import(
-                        # Because we know it's a third-party module, only return the top-level module name.
-                        # E.g. `import third_party.python3.numpy.random.x` becomes simply `numpy`.
-                        node.module.removeprefix(f"{self.python_moduledir}.").split(".", maxsplit=1)[0],
-                        import_type,
-                    ),
-                )
+            module_only_import = self._resolve_import_from_import_path_candidate(node.module)
+            if module_only_import.type_ != ImportType.PACKAGE:
+                imports.append(module_only_import)
                 continue
 
-            if import_type == ImportType.UNKNOWN:
-                import_paths.append(Import(node.module, import_type))
+            # Ascertain import type of `<node.module>.<name.name>`.
+            full_import = self._resolve_import_from_import_path_candidate(f"{node.module}.{name.name}")
+            if full_import.type_ != ImportType.UNKNOWN:
+                imports.append(full_import)
                 continue
 
-            if import_type == ImportType.MODULE:
-                import_paths.append(Import(node.module, ImportType.MODULE))
+            # Since we know node.module is a package, <node.module>.<name.name> must either be:
+            # * import from __init__.py or __init__.pyi
+            # * erroneous
+            # TODO: add unit-test for this path
+            init_import = self._resolve_import_from_import_path_candidate(f"{node.module}.__init__")
+            if init_import.type_ == ImportType.MODULE or init_import.type_ == ImportType.STUB:
+                imports.append(init_import)
                 continue
 
-            if import_type == ImportType.STUB:
-                import_paths.append(Import(node.module, ImportType.STUB))
-                continue
+            # Deal with the erroneous case by simply ignoring it -- the Python interpreter would complain about
+            # not finding that import anyway.
 
-            # At this point, the node.module must lead to a package.
-            # Ascertain import type of `package.name`.
-            full_import = ".".join([node.module, name.name])
-            full_import_type = resolve_import_type(full_import, self.python_moduledir)
-            import_paths.append(Import(full_import, full_import_type))
+        return imports
 
-        return import_paths
-
-    def _relative_import(self, node: ast.ImportFrom, pyfile_path: str) -> list[Import]:
+    def _relative_import_from_node_to_absolute_import_from_node(
+            self,
+            node: ast.ImportFrom,
+            pyfile_path: str,
+    ) -> list[ast.ImportFrom]:
         relative_import_dir = os.path.abspath(
             os.path.join(
                 # Find absolute path to containing package.
@@ -107,20 +107,41 @@ class ToAbsoluteImports:
 
         if relative_import_dir.find(self.abs_path_to_project_root) == -1:
             # ensure level isn't so high that the relative import dir is outside the project root
-            raise ImportError("relative import moves out of project root")
+            raise ImportError("attempted relative import beyond top-level package")
 
-        # TODO: implement
         relative_import_pkg = (  # noqa: F841
-            os.path.splitext(relative_import_dir)[0]
+            relative_import_dir
                 .removeprefix(self.abs_path_to_project_root)
-                .lstrip(os.path.sep)
                 .replace(os.path.sep, ".")
         )
 
-        # from . import <>
-        # TODO
+        if node.module is None:
+            if relative_import_pkg == "":
+                return [ast.ImportFrom(module=name, names=["__init__"], level=0) for name in node.names]
 
-        # from .<> import <>
-        # TODO
+            # TODO: add unit-test for this path
+            return [ast.ImportFrom(module=relative_import_pkg, names=node.names, level=0)]
 
-        raise NotImplementedError
+        return [
+            ast.ImportFrom(
+                module=f"{relative_import_pkg}.{node.module}".removeprefix("."),
+                names=node.names,
+                level=0,
+            ),
+        ]
+
+    def _resolve_import_from_import_path_candidate(self, import_path_candidate: str) -> Import:
+        import_type = resolve_import_type(import_path_candidate, self.python_moduledir)
+
+        if import_type == ImportType.THIRD_PARTY_MODULE:
+            return Import(
+                # Because we know it's a third-party module, only return the top-level module name.
+                # E.g. `import third_party.python3.numpy.random.x` becomes simply `numpy`.
+                import_path_candidate.removeprefix(f"{self.python_moduledir}.").split(".", maxsplit=1)[0],
+                import_type,
+            )
+
+        if import_type == ImportType.UNKNOWN or import_type == ImportType.MODULE or import_type == ImportType.STUB:
+            return Import(import_path_candidate, import_type)
+
+        return Import(import_path_candidate, ImportType.PACKAGE)

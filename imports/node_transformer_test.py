@@ -1,6 +1,7 @@
 import ast
 import os
 from collections import namedtuple
+from unittest import skip
 
 from imports.node_transformer import ToAbsoluteImports
 from imports.py_import import Import, ImportType
@@ -109,8 +110,32 @@ class TestToAbsoluteImportPaths(MockPythonLibraryTestCase):
 
         return
 
+    @skip("unimplemented")
     def test_relative_imports_in_import_from_nodes(self):
-        # TODO
+        with self.subTest("from .test_subpackage.test_module_1 import x"):
+            node = ast.ImportFrom(
+                module=f"{self.subpackage_dir.replace(os.path.sep, '.')}.test_module_1",
+                level=1,
+                names=[ast.alias(name="x")],
+            )
+
+            self.assertEqual(
+                [Import(f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}", ImportType.MODULE)],
+                self.transformer.transform_all([node], pyfile_path="main.py"),
+            )
+
+        with self.subTest("from .. import x"):
+            node = ast.ImportFrom(
+                module=None,
+                level=2,
+                names=[ast.alias(name="x")],
+            )
+
+            self.assertEqual(
+                [Import("test_subpackage.test_module_1", ImportType.MODULE)],
+                self.transformer.transform_all([node], pyfile_path="main.py"),
+            )
+
         return
 
     def test_both_import_and_import_from_nodes(self):

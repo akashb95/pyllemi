@@ -18,7 +18,6 @@ class ImportType(IntEnum):
 class Import:
     import_: str
     type_: ImportType
-    is_stub_file: bool = False
 
     def __eq__(self, other: "Import") -> bool:
         return self.import_ == other.import_ and self.type_ == other.type_
