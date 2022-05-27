@@ -4,16 +4,18 @@ from dataclasses import dataclass
 from typing import Collection, Iterator
 
 from imports.common import IMPORT_NODE_TYPE
-from imports.py_import import Import, ImportType, resolve_import_type
+from imports.py_import import EnrichedImport, ImportType, resolve_import_type
 
 
 @dataclass
-class ToAbsoluteImports:
+class ToEnrichedImports:
     # Only required for computing absolute import paths from relative imports
     abs_path_to_project_root: str
+
+    # Required when import path takes form of <python_moduledir>.module, e.g. `import third_party.python3.numpy`
     python_moduledir: str
 
-    def transform(self, node: IMPORT_NODE_TYPE, *, pyfile_path: str = "") -> Iterator[list[Import]]:
+    def convert(self, node: IMPORT_NODE_TYPE, *, pyfile_path: str = "") -> Iterator[list[EnrichedImport]]:
         if isinstance(node, ast.Import):
             yield self._import_node(node)
 
@@ -30,15 +32,15 @@ class ToAbsoluteImports:
                 f"can only transform nodes of type Import and ImportFrom; got {type(node).__name__}"
             )
 
-    def transform_all(self, nodes: Collection[IMPORT_NODE_TYPE], *, pyfile_path: str = "") -> list[Import]:
-        imports: list[Import] = []
+    def convert_all(self, nodes: Collection[IMPORT_NODE_TYPE], *, pyfile_path: str = "") -> list[EnrichedImport]:
+        imports: list[EnrichedImport] = []
         for node in nodes:
-            for import_path in self.transform(node, pyfile_path=pyfile_path):
+            for import_path in self.convert(node, pyfile_path=pyfile_path):
                 imports.extend(import_path)
 
         return imports
 
-    def _import_node(self, node: ast.Import) -> list[Import]:
+    def _import_node(self, node: ast.Import) -> list[EnrichedImport]:
         import_paths = []
         for alias in node.names:
             # TODO: use self._resolve_import_from_import_path_candidate
@@ -48,21 +50,28 @@ class ToAbsoluteImports:
             if import_type == ImportType.THIRD_PARTY_MODULE:
                 import_path = import_path.removeprefix(f"{self.python_moduledir}.").split(".", maxsplit=1)[0]
 
-            import_paths.append(Import(import_path, import_type))
+            import_paths.append(EnrichedImport(import_path, import_type))
         return import_paths
 
-    def _import_from_node(self, node: ast.ImportFrom, pyfile_path: str = "") -> list[Import]:
+    def _import_from_node(self, node: ast.ImportFrom, pyfile_path: str = "") -> list[EnrichedImport]:
         if node.level > 0 and pyfile_path == "":
             # Cannot compute absolute import path from relative import path
             # if path of Python module is not provided.
             raise ValueError("pyfile_path cannot be empty for relative imports")
 
-        imports: list[Import] = []
+        if node.level > 0 and os.path.dirname(pyfile_path) == "":
+            # TODO: verify if this is correct
+            # invalid Python import
+            raise ImportError(f"attempted relative import with no known parent package (file: {pyfile_path})")
+
+        imports: list[EnrichedImport] = []
         if node.level > 0:
-            raise NotImplementedError
-            # transformed_ast_node = self._relative_import_from_node_to_absolute_import_from_node(node, pyfile_path)
-            # for node in transformed_ast_node:
-            #     imports.extend(self._import_from_node(node, pyfile_path))
+            # raise NotImplementedError
+            transformed_ast_node = self._relative_import_from_node_to_absolute_import_from_node(node, pyfile_path)
+            for node in transformed_ast_node:
+                imports.extend(self._import_from_node(node, pyfile_path))
+
+            return imports
 
         # from <> import <>
         for name in node.names:
@@ -117,9 +126,8 @@ class ToAbsoluteImports:
 
         if node.module is None:
             if relative_import_pkg == "":
-                return [ast.ImportFrom(module=name, names=["__init__"], level=0) for name in node.names]
+                return [ast.ImportFrom(module=name.name, names=["__init__"], level=0) for name in node.names]
 
-            # TODO: add unit-test for this path
             return [ast.ImportFrom(module=relative_import_pkg, names=node.names, level=0)]
 
         return [
@@ -130,11 +138,11 @@ class ToAbsoluteImports:
             ),
         ]
 
-    def _resolve_import_from_import_path_candidate(self, import_path_candidate: str) -> Import:
+    def _resolve_import_from_import_path_candidate(self, import_path_candidate: str) -> EnrichedImport:
         import_type = resolve_import_type(import_path_candidate, self.python_moduledir)
 
         if import_type == ImportType.THIRD_PARTY_MODULE:
-            return Import(
+            return EnrichedImport(
                 # Because we know it's a third-party module, only return the top-level module name.
                 # E.g. `import third_party.python3.numpy.random.x` becomes simply `numpy`.
                 import_path_candidate.removeprefix(f"{self.python_moduledir}.").split(".", maxsplit=1)[0],
@@ -142,6 +150,6 @@ class ToAbsoluteImports:
             )
 
         if import_type == ImportType.UNKNOWN or import_type == ImportType.MODULE or import_type == ImportType.STUB:
-            return Import(import_path_candidate, import_type)
+            return EnrichedImport(import_path_candidate, import_type)
 
-        return Import(import_path_candidate, ImportType.PACKAGE)
+        return EnrichedImport(import_path_candidate, ImportType.PACKAGE)

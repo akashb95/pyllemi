@@ -15,11 +15,11 @@ class ImportType(IntEnum):
 
 
 @dataclass
-class Import:
+class EnrichedImport:
     import_: str
     type_: ImportType
 
-    def __eq__(self, other: "Import") -> bool:
+    def __eq__(self, other: "EnrichedImport") -> bool:
         return self.import_ == other.import_ and self.type_ == other.type_
 
 
@@ -53,9 +53,9 @@ def resolve_import_type(py_import_path: str, python_moduledir: str) -> ImportTyp
     return ImportType.UNKNOWN
 
 
-def to_whatinputs_input(import_: Import) -> Optional[list[str]]:
+def to_whatinputs_input(import_: EnrichedImport) -> Optional[list[str]]:
     """
-    Output depends on the Import type.
+    Output depends on the EnrichedImport type.
 
     For ImportType.MODULE, the output is a `.py` file.
     For ImportType.PACKAGE, the output is a glob matching `**/*.py` under the given (Python) package.

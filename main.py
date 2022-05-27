@@ -4,7 +4,7 @@ from logging import INFO
 
 from common.logger.logger import setup_logger
 from adapters.custom_arg_types import existing_file_arg_type
-from imports.py_import import Import, to_whatinputs_input
+from imports.py_import import EnrichedImport, to_whatinputs_input
 from imports.stdlib_modules import get_stdlib_module_names
 from imports.nodes_collator import NodesCollator
 from adapters.plz_query_graph import (
@@ -13,7 +13,7 @@ from adapters.plz_query_graph import (
     get_third_party_module_targets,
     get_whatinputs,
 )
-from imports.node_transformer import ToAbsoluteImports
+from imports.enricher import ToEnrichedImports
 
 LOGGER = setup_logger(__file__, INFO)
 
@@ -32,15 +32,15 @@ def run(path_to_pyfile: str):
     reporoot: str = get_reporoot()
 
     # Convert import nodes to plz targets
-    to_absolute_imports = ToAbsoluteImports(reporoot, get_python_moduledir())
-    custom_module_imports: list[Import] = []
+    to_absolute_imports = ToEnrichedImports(reporoot, get_python_moduledir())
+    custom_module_imports: list[EnrichedImport] = []
     third_party_module_imports: set[str] = set()
     custom_module_targets: set[str] = set()
     custom_module_sources_without_targets: set[str] = set()
 
     for import_node in collator.collate(code=code, path=path_to_pyfile):
         # TODO: refactor into PlzTargetResolver
-        for abs_imports in to_absolute_imports.transform(import_node):
+        for abs_imports in to_absolute_imports.convert(import_node):
             for abs_import in abs_imports:
 
                 # Filter out stdlib modules.

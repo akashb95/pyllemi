@@ -2,7 +2,7 @@ import os
 from unittest import TestCase
 
 from utils.mock_python_library_test_case import MockPythonLibraryTestCase
-from imports.py_import import Import, ImportType, resolve_import_type, to_whatinputs_input
+from imports.py_import import EnrichedImport, ImportType, resolve_import_type, to_whatinputs_input
 
 
 class TestResolveImportType(MockPythonLibraryTestCase):
@@ -32,7 +32,7 @@ class TestResolveImportType(MockPythonLibraryTestCase):
 
 class TestToWhatInputsInput(TestCase):
     def test_module(self):
-        import_ = Import("test.module", ImportType.MODULE)
+        import_ = EnrichedImport("test.module", ImportType.MODULE)
         self.assertEqual(
             [os.path.join("test", "module.py")],
             to_whatinputs_input(import_),
@@ -40,7 +40,7 @@ class TestToWhatInputsInput(TestCase):
         return
 
     def test_package(self):
-        import_ = Import("test.package", ImportType.PACKAGE)
+        import_ = EnrichedImport("test.package", ImportType.PACKAGE)
         self.assertEqual(
             [os.path.join("test", "package", "**", "*.py"), os.path.join("test", "package", "**", "*.pyi")],
             to_whatinputs_input(import_),
@@ -48,12 +48,12 @@ class TestToWhatInputsInput(TestCase):
         return
 
     def test_unknown_import_type(self):
-        import_ = Import("test", ImportType.UNKNOWN)
+        import_ = EnrichedImport("test", ImportType.UNKNOWN)
         self.assertIsNone(to_whatinputs_input(import_))
         return
 
     def test_stub(self):
-        import_ = Import("test.stub", ImportType.STUB)
+        import_ = EnrichedImport("test.stub", ImportType.STUB)
         self.assertEqual(
             [os.path.join("test", "stub.pyi")],
             to_whatinputs_input(import_),
