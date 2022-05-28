@@ -8,7 +8,6 @@ python_library(
         "//common/logger",
         "//adapters",
         "//imports",
-        "//converters",
     ],
 )
 

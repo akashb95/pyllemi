@@ -1,7 +1,7 @@
 import os
 from unittest import TestCase, mock
 
-from adapters.plz_query_graph import (
+from adapters.plz_query import (
     get_all_targets,
     get_config,
     get_third_party_module_targets,
