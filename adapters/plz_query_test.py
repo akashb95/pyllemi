@@ -13,7 +13,7 @@ from adapters.plz_query import (
 
 
 class TestGetConfig(TestCase):
-    @mock.patch("adapters.plz_query_graph.subprocess.Popen")
+    @mock.patch("adapters.plz_query.subprocess.Popen")
     def test_gets_config(self, mock_subprocess_popen):
         process_mock = mock.Mock()
         stdout_mock_return_value = [b"some value"]
@@ -29,8 +29,8 @@ class TestGetConfig(TestCase):
 
 
 class TestGetThirdPartyModules(TestCase):
-    @mock.patch("adapters.plz_query_graph.get_all_targets")
-    @mock.patch("adapters.plz_query_graph.get_config")
+    @mock.patch("adapters.plz_query.get_all_targets")
+    @mock.patch("adapters.plz_query.get_config")
     def test_gets_third_party_modules(
         self,
         mock_get_config,
@@ -47,14 +47,14 @@ class TestGetThirdPartyModules(TestCase):
         )
         return
 
-    @mock.patch("adapters.plz_query_graph.get_config")
+    @mock.patch("adapters.plz_query.get_config")
     def test_errors_when_get_config_returns_no_values(self, mock_get_config):
         mock_get_config.return_value = []
         with self.assertRaises(AssertionError):
             get_third_party_module_targets()
         return
 
-    @mock.patch("adapters.plz_query_graph.get_config")
+    @mock.patch("adapters.plz_query.get_config")
     def test_errors_when_get_config_returns_unexpected_response(
         self,
         mock_get_config,
@@ -66,7 +66,7 @@ class TestGetThirdPartyModules(TestCase):
 
 
 class TestGetProjectRoot(TestCase):
-    @mock.patch("adapters.plz_query_graph.subprocess.Popen")
+    @mock.patch("adapters.plz_query.subprocess.Popen")
     def test_gets_reporoot(self, mock_subprocess_popen):
         process_mock = mock.Mock()
         stdout_mock_return_value = [b"/path/to/reporoot"]
@@ -84,7 +84,7 @@ class TestGetProjectRoot(TestCase):
 
 
 class TestGetWhatInputs(TestCase):
-    @mock.patch("adapters.plz_query_graph.subprocess.Popen")
+    @mock.patch("adapters.plz_query.subprocess.Popen")
     def test_gets_target_when_all_inputs_exist(self, mock_subprocess_popen):
         process_mock = mock.Mock()
         stdout_mock_return_value = [
@@ -106,7 +106,7 @@ class TestGetWhatInputs(TestCase):
         )
         return
 
-    @mock.patch("adapters.plz_query_graph.subprocess.Popen")
+    @mock.patch("adapters.plz_query.subprocess.Popen")
     def test_outputs_targetless_input_paths(self, mock_subprocess_popen):
         process_mock = mock.Mock()
         stdout_mock_return_value = [
@@ -127,7 +127,7 @@ class TestGetWhatInputs(TestCase):
         )
         return
 
-    @mock.patch("adapters.plz_query_graph.subprocess.Popen")
+    @mock.patch("adapters.plz_query.subprocess.Popen")
     def test_outputs_mixed_targets_and_targetless_paths(self, mock_subprocess_popen):
         process_mock = mock.Mock()
         stdout_mock_return_value = [
@@ -150,7 +150,7 @@ class TestGetWhatInputs(TestCase):
 
 
 class TestGetAllTargets(TestCase):
-    @mock.patch("adapters.plz_query_graph.subprocess.Popen")
+    @mock.patch("adapters.plz_query.subprocess.Popen")
     def test_gets_all_targets(self, mock_subprocess_popen):
 
         process_mock = mock.Mock()
@@ -170,7 +170,7 @@ class TestGetAllTargets(TestCase):
 
 
 class TestGetPlzBuildGraph(TestCase):
-    @mock.patch("adapters.plz_query_graph.subprocess.Popen")
+    @mock.patch("adapters.plz_query.subprocess.Popen")
     def test_get_plz_build_graph(self, mock_subprocess_popen):
         process_mock = mock.Mock()
         stdout_mock_return_value = [
@@ -204,7 +204,7 @@ class TestGetPlzBuildGraph(TestCase):
         )
         return
 
-    @mock.patch("adapters.plz_query_graph.subprocess.Popen")
+    @mock.patch("adapters.plz_query.subprocess.Popen")
     def test_when_returncode_is_non_zero(self, mock_subprocess_popen):
         process_mock = mock.Mock()
         process_mock.configure_mock(**{"stderr": "mock err", "returncode": 1})
