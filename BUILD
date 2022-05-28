@@ -1,5 +1,5 @@
 python_library(
-    name = "snaky_lib",
+    name = "pyllemi_lib",
     srcs = glob(
         ["*.py"],
         exclude = ["_test.py"],
@@ -12,7 +12,7 @@ python_library(
 )
 
 python_binary(
-    name = "snaky",
+    name = "pyllemi",
     main = "main.py",
-    deps = [":snaky_lib"],
+    deps = [":pyllemi_lib"],
 )
