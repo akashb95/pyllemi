@@ -3,7 +3,7 @@ import os
 from collections import namedtuple
 
 from imports.enricher import ToEnrichedImports
-from imports.py_import import EnrichedImport, ImportType
+from imports.enriched_import import EnrichedImport, ImportType
 from utils.mock_python_library_test_case import MockPythonLibraryTestCase
 
 

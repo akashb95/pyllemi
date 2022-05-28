@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Collection, Iterator
 
 from imports.common import IMPORT_NODE_TYPE
-from imports.py_import import EnrichedImport, ImportType, resolve_import_type
+from imports.enriched_import import EnrichedImport, ImportType, resolve_import_type
 
 
 @dataclass

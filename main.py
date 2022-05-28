@@ -4,7 +4,7 @@ from logging import INFO
 
 from common.logger.logger import setup_logger
 from adapters.custom_arg_types import existing_file_arg_type
-from imports.py_import import EnrichedImport, to_whatinputs_input
+from imports.enriched_import import EnrichedImport, to_whatinputs_input
 from imports.stdlib_modules import get_stdlib_module_names
 from imports.nodes_collator import NodesCollator
 from adapters.plz_query_graph import (
@@ -97,6 +97,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    LOGGER.warning(f"pyfile: {args.pyfile}; cwd: {os.getcwd()}")
+    LOGGER.info(f"pyfile: {args.pyfile}; cwd: {os.getcwd()}")
 
     run(args.pyfile)
