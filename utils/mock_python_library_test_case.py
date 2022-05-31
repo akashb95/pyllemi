@@ -21,7 +21,7 @@ class MockPythonLibraryTestCase(TestCase):
 
         if os.path.exists(self.subpackage_dir):
             raise FileExistsError(
-                f"cannot create {self.test_dir} for test setup: path already exists"
+                f"cannot create {self.subpackage_dir} for test setup: path already exists"
             )
         os.makedirs(self.subpackage_dir)
 
@@ -39,7 +39,7 @@ class MockPythonLibraryTestCase(TestCase):
 
         self.test_wd = os.path.abspath(os.getcwd())
 
-        self.files_to_delete = [
+        self.files_to_delete: list[str] = [
             self.package_module,
             self.subpackage_module,
             self.plzconfig_file,
@@ -47,7 +47,7 @@ class MockPythonLibraryTestCase(TestCase):
         ]
         # The order matters - cannot delete a dir that is not empty.
         # The deletion will be carried out in the tearDown.
-        self.dirs_to_delete = [self.subpackage_dir, self.test_dir]
+        self.dirs_to_delete: list[str] = [self.subpackage_dir, self.test_dir]
         return
 
     def tearDown(self) -> None:

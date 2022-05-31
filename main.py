@@ -4,7 +4,7 @@ from logging import INFO
 
 from common.logger.logger import setup_logger
 from adapters.custom_arg_types import existing_file_arg_type
-from imports.plz_target_resolver import PlzTargetResolver
+from targets.resolver import Resolver
 from imports.stdlib_modules import get_stdlib_module_names
 from imports.nodes_collator import NodesCollator
 from adapters.plz_query import (
@@ -30,7 +30,7 @@ def run(path_to_pyfile: str):
     reporoot: str = get_reporoot()
 
     # Convert import nodes to plz targets
-    plz_target_resolver = PlzTargetResolver(
+    plz_target_resolver = Resolver(
         reporoot,
         get_python_moduledir(),
         std_lib_modules,
