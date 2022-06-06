@@ -1,8 +1,11 @@
+import functools
+import gc
 import os
 from unittest import TestCase, mock
 
 from adapters.plz_query import (
     get_all_targets,
+    get_build_file_names,
     get_config,
     get_third_party_module_targets,
     get_plz_build_graph,
@@ -32,9 +35,9 @@ class TestGetThirdPartyModules(TestCase):
     @mock.patch("adapters.plz_query.get_all_targets")
     @mock.patch("adapters.plz_query.get_config")
     def test_gets_third_party_modules(
-        self,
-        mock_get_config,
-        mock_get_all_targets,
+            self,
+            mock_get_config,
+            mock_get_all_targets,
     ):
         mock_get_config.return_value = ["third_party.python"]
         mock_get_all_targets.return_value = ["//third_party/python:a", "//third_party/python:b"]
@@ -56,8 +59,8 @@ class TestGetThirdPartyModules(TestCase):
 
     @mock.patch("adapters.plz_query.get_config")
     def test_errors_when_get_config_returns_unexpected_response(
-        self,
-        mock_get_config,
+            self,
+            mock_get_config,
     ):
         mock_get_config.return_value = []
         with self.assertRaises(AssertionError):
@@ -152,7 +155,6 @@ class TestGetWhatInputs(TestCase):
 class TestGetAllTargets(TestCase):
     @mock.patch("adapters.plz_query.subprocess.Popen")
     def test_gets_all_targets(self, mock_subprocess_popen):
-
         process_mock = mock.Mock()
         stdout_mock_return_value = [
             b"//pkg/dir:target_1",
@@ -216,4 +218,35 @@ class TestGetPlzBuildGraph(TestCase):
             # This is to stop the cache from returning the result from a previous call.
             "//pkg/dir/y",
         )
+        return
+
+
+class TestGetBuildFileNames(TestCase):
+    def setUp(self) -> None:
+        # Clear all cache so that @lru_cache calls do not interfere with mocks.
+        gc.collect()
+        wrappers = [
+            a for a in gc.get_objects()
+            if isinstance(a, functools._lru_cache_wrapper)
+        ]
+
+        for wrapper in wrappers:
+            wrapper.cache_clear()
+
+        return
+
+    @mock.patch("adapters.plz_query.get_config")
+    def test_empty_stdout(self, mock_get_config):
+        mock_get_config.return_value = []
+        self.assertRaisesRegex(
+            AssertionError,
+            "expected to find at least 1 build file name",
+            get_build_file_names,
+        )
+        return
+
+    @mock.patch("adapters.plz_query.get_config")
+    def test_get_build_file_names(self, mock_get_config):
+        mock_get_config.return_value = ["BUILD.plz", "BUILD"]
+        self.assertCountEqual(["BUILD.plz", "BUILD"], get_build_file_names())
         return

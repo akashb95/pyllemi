@@ -10,20 +10,26 @@ class NewPackageModuleFinder:
     __default_build_file_names__ = {"BUILD", "BUILD.plz"}
 
     def __init__(self, path_to_pkg: str, build_file_names: Optional[set[str]] = None):
+        self._logger = setup_logger(__file__, INFO)
+
         self._path_to_pkg = path_to_pkg
+
+        are_build_file_names_set = build_file_names is None or len(build_file_names) == 0
+        if are_build_file_names_set:
+            self._logger.warning(f"BUILD file names not provided, using defaults: {self.__default_build_file_names__}")
+
         self._build_file_names = (
             self.__default_build_file_names__
-            if (build_file_names is None or len(build_file_names) == 0)
+            if are_build_file_names_set
             else build_file_names
         )
 
         self._test_targets: set[str] = set()
         self._library_targets: set[str] = set()
 
-        self._logger = setup_logger(__file__, INFO)
         return
 
-    def find(self) -> None:
+    def find(self) -> tuple[set[str], set[str]]:
         self._validate()
 
         # Find all files in pkg dir.
@@ -45,11 +51,8 @@ class NewPackageModuleFinder:
             f"and {len(test_src_files)} test sources."
         )
 
-        if len(test_src_files) == 0 and len(lib_src_files) == 0:
-            return
-
         self._test_targets, self._library_targets = test_src_files, lib_src_files
-        return
+        return self._library_targets, self._test_targets
 
     def _validate(self):
         if not os.path.isdir(self._path_to_pkg):

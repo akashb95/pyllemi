@@ -2,6 +2,7 @@ import os
 import json
 import re
 import subprocess
+import sys
 from collections import namedtuple
 from functools import cache, lru_cache
 from logging import INFO
@@ -25,11 +26,7 @@ def get_config(specifier: str) -> list[str]:
         LOGGER.error(f"Got a non-zero return code while trying to fetch plz config for {specifier}")
         raise RuntimeError(proc.stderr)
 
-    stdout: list[str] = []
-    for line in proc.stdout:
-        stdout.append(line.decode().rstrip())
-
-    return stdout
+    return _convert_list_of_bytes_to_list_of_strs(proc.stdout)
 
 
 @lru_cache(1)
@@ -40,6 +37,13 @@ def get_python_moduledir() -> str:
         f"but found {len(get_config_output)}: {get_config_output}"
     )
     return get_config_output[0]
+
+
+@lru_cache(1)
+def get_build_file_names() -> list[str]:
+    get_config_output: list[str] = get_config("parse.buildfilenames")
+    assert len(get_config_output) > 0, "expected to find at least 1 build file name"
+    return get_config_output
 
 
 @cache
