@@ -1,10 +1,11 @@
 import ast
-import enum
+from enum import Enum
 from dataclasses import dataclass, field
 from typing import Optional
+from collections import OrderedDict
 
 
-class PythonTargetTypes(enum.StrEnum):
+class PythonTargetTypes(Enum):
     PYTHON_BINARY = "python_binary"
     PYTHON_LIBRARY = "python_library"
     PYTHON_TEST = "python_test"
@@ -12,24 +13,24 @@ class PythonTargetTypes(enum.StrEnum):
 
 @dataclass(kw_only=True)
 class Target:
-    name: str
-    deps: set[str]
-    other_kwargs: field(default_factory=dict)
+    name: field(default_factory=str, compare=True)
+    deps: field(default_factory=set[str], compare=True)
+    other_kwargs: field(default_factory=OrderedDict, compare=True)
 
 
 @dataclass(kw_only=True)
 class PythonBinary(Target):
-    main: str
+    main: field(default_factory=str, compare=True)
 
 
 @dataclass(kw_only=True)
 class PythonLibrary(Target):
-    srcs: set[str]
+    srcs: field(default_factory=set[str], compare=True)
 
 
 @dataclass(kw_only=True)
 class PythonTest(Target):
-    srcs: set[str]
+    srcs: field(default_factory=set[str], compare=True)
 
 
 def convert_file_to_targets(source: str) -> tuple[list[Target], list[ast.AST]]:
