@@ -1,6 +1,6 @@
 import os
 
-from adapters.new_package_module_finder import NewPackageModuleFinder
+from adapters.os.new_package_module_finder import NewPackageModuleFinder
 from utils.mock_python_library_with_new_build_pkg_test_case import MockPythonLibraryWithNewBuildPkgTestCase
 
 

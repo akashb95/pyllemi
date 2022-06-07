@@ -1,7 +1,7 @@
 import os.path
 from typing import Optional
 
-from adapters.new_package_module_finder import NewPackageModuleFinder
+from adapters.os.new_package_module_finder import NewPackageModuleFinder
 from targets import target
 
 
