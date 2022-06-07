@@ -41,7 +41,7 @@ def get_python_moduledir() -> str:
 
 @lru_cache(1)
 def get_build_file_names() -> list[str]:
-    get_config_output: list[str] = get_config("parse.buildfilenames")
+    get_config_output: list[str] = get_config("parse.buildfilename")
     assert len(get_config_output) > 0, "expected to find at least 1 build file name"
     return get_config_output
 

@@ -236,17 +236,19 @@ class TestGetBuildFileNames(TestCase):
         return
 
     @mock.patch("adapters.plz_query.get_config")
-    def test_empty_stdout(self, mock_get_config):
+    def test_empty_stdout(self, mock_get_config: mock.MagicMock):
         mock_get_config.return_value = []
         self.assertRaisesRegex(
             AssertionError,
             "expected to find at least 1 build file name",
             get_build_file_names,
         )
+        mock_get_config.assert_called_once_with("parse.buildfilename")
         return
 
     @mock.patch("adapters.plz_query.get_config")
     def test_get_build_file_names(self, mock_get_config):
         mock_get_config.return_value = ["BUILD.plz", "BUILD"]
         self.assertCountEqual(["BUILD.plz", "BUILD"], get_build_file_names())
+        mock_get_config.assert_called_once_with("parse.buildfilename")
         return

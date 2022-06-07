@@ -134,24 +134,24 @@ def get_python_target(node: ast.AST) -> Optional[Target]:
 
         return PythonTest(name=name, deps=deps, srcs=srcs, other_kwargs=other_target_kwargs)
 
-    elif node.func.id == PythonTargetTypes.PYTHON_BINARY:
-        other_target_kwargs = {}
-        main: str = ""
-        for keyword in node.keywords:
-            if keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
-                name = keyword.value.value
-
-            elif keyword.arg == "main" and isinstance(keyword.value, ast.Constant):
-                main = keyword.value.value
-
-            elif keyword.arg == "deps" and isinstance(keyword.value, ast.List):
-                for elt in keyword.value.elts:
-                    if not isinstance(elt, ast.Constant):
-                        continue
-
-                    deps.add(elt.value)
-
-            other_target_kwargs[keyword.arg] = keyword.value
-
-        return PythonBinary(name=name, deps=deps, main=main, other_kwargs=other_target_kwargs)
+    # elif node.func.id == PythonTargetTypes.PYTHON_BINARY:
+    #     other_target_kwargs = {}
+    #     main: str = ""
+    #     for keyword in node.keywords:
+    #         if keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
+    #             name = keyword.value.value
+    #
+    #         elif keyword.arg == "main" and isinstance(keyword.value, ast.Constant):
+    #             main = keyword.value.value
+    #
+    #         elif keyword.arg == "deps" and isinstance(keyword.value, ast.List):
+    #             for elt in keyword.value.elts:
+    #                 if not isinstance(elt, ast.Constant):
+    #                     continue
+    #
+    #                 deps.add(elt.value)
+    #
+    #         other_target_kwargs[keyword.arg] = keyword.value
+    #
+    #     return PythonBinary(name=name, deps=deps, main=main, other_kwargs=other_target_kwargs)
     return None
