@@ -31,7 +31,5 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run plz cover
         run: |
-          which python
-          python --version
           cd $GITHUB_WORKSPACE
           ./pleasew cover --profile ci
