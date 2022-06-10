@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 
 class PythonTargetTypes(Enum):
+    UNKNOWN = "unknown"
     PYTHON_BINARY = "python_binary"
     PYTHON_LIBRARY = "python_library"
     PYTHON_TEST = "python_test"
@@ -19,10 +20,19 @@ class PythonTargetTypes(Enum):
 
 
 class Target:
+    modifiable_attributes = frozenset({"srcs", "deps"})
+
     def __init__(self, *, rule_name: str, **kwargs):
         self.rule_name = rule_name
         self.kwargs = OrderedDict(kwargs)
         return
+
+    @property
+    def type_(self) -> PythonTargetTypes:
+        try:
+            return PythonTargetTypes(self.rule_name)
+        except ValueError:
+            return PythonTargetTypes.UNKNOWN
 
     def __str__(self) -> str:
         kwargs_repr = []
