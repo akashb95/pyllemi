@@ -1,7 +1,7 @@
 import os
 
 from adapters.os.new_build_pkg_creator import NewBuildPkgCreator
-from targets import target
+from domain.targets import target
 from utils.mock_python_library_with_new_build_pkg_test_case import MockPythonLibraryWithNewBuildPkgTestCase
 
 

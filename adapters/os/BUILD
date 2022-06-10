@@ -8,7 +8,7 @@ python_library(
     ),
     deps = [
         "//common/logger",
-        "//targets",
+        "//domain/targets",
     ],
 )
 

@@ -9,6 +9,14 @@ class PythonTargetTypes(Enum):
     PYTHON_LIBRARY = "python_library"
     PYTHON_TEST = "python_test"
 
+    @classmethod
+    def __contains__(cls, item):
+        try:
+            cls(item)
+        except ValueError:
+            return False
+        return True
+
 
 class Target:
     def __init__(self, *, rule_name: str, **kwargs):

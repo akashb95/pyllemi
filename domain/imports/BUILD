@@ -10,7 +10,7 @@ python_library(
         "//adapters",
         "//common/logger",
         "//converters",
-        "//imports/stdlib",
+        "//domain/imports/stdlib",
     ],
 )
 

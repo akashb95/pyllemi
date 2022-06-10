@@ -7,7 +7,7 @@ python_library(
     deps = [
         "//adapters",
         "//common/logger",
-        "//imports",
+        "//domain/imports",
     ],
 )
 

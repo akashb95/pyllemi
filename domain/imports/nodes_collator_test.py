@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from imports.nodes_collator import NodesCollator
+from domain.imports.nodes_collator import NodesCollator
 
 
 class TestNodesCollator(TestCase):

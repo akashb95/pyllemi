@@ -2,7 +2,7 @@ import os
 from unittest import TestCase
 
 from utils.mock_python_library_test_case import MockPythonLibraryTestCase
-from imports.enriched_import import EnrichedImport, ImportType, resolve_import_type, to_whatinputs_input
+from domain.imports.enriched_import import EnrichedImport, ImportType, resolve_import_type, to_whatinputs_input
 
 
 class TestResolveImportType(MockPythonLibraryTestCase):

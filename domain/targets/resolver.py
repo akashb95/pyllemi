@@ -3,9 +3,9 @@ from typing import Iterable
 
 from adapters.plz_query import get_whatinputs
 from common.logger.logger import setup_logger
-from imports.common import IMPORT_NODE_TYPE
-from imports.enriched_import import to_whatinputs_input, EnrichedImport
-from imports.enricher import ToEnrichedImports
+from domain.imports.common import IMPORT_NODE_TYPE
+from domain.imports.enriched_import import to_whatinputs_input, EnrichedImport
+from domain.imports.enricher import ToEnrichedImports
 
 
 class Resolver:
