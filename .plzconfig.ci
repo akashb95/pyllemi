@@ -2,9 +2,9 @@
 Timeout=1200
 
 [BuildEnv]
-tools-python = /opt/hostedtoolcache/Python/3.9.10/x64/bin/python
-default-python-interpreter = /opt/hostedtoolcache/Python/3.9.10/x64/bin/python
+tools-python = /opt/hostedtoolcache/Python/3.10.5/x64/bin/python
+default-python-interpreter = /opt/hostedtoolcache/Python/3.10.5/x64/bin/python
 
 [Python]
-DefaultInterpreter = /opt/hostedtoolcache/Python/3.9.10/x64/bin/python
-PipTool = /opt/hostedtoolcache/Python/3.9.10/x64/bin/pip
+DefaultInterpreter = /opt/hostedtoolcache/Python/3.10.5/x64/bin/python
+PipTool = /opt/hostedtoolcache/Python/3.10.5/x64/bin/pip
