@@ -2,8 +2,8 @@ import ast
 import os
 from collections import namedtuple
 
-from imports.enricher import ToEnrichedImports
-from imports.enriched_import import EnrichedImport, ImportType
+from domain.imports.enricher import ToEnrichedImports
+from domain.imports.enriched_import import EnrichedImport, ImportType
 from utils.mock_python_library_test_case import MockPythonLibraryTestCase
 
 

@@ -5,9 +5,9 @@ python_library(
         exclude = ["_test.py"],
     ),
     deps = [
-        "//common/logger",
         "//adapters",
-        "//imports",
+        "//common/logger",
+        "//domain/imports",
     ],
 )
 

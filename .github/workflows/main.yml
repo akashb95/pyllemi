@@ -26,12 +26,10 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
-          python-version: '3.9.10'
+          python-version: '3.10.5'
           architecture: 'x64'
       # Runs a single command using the runners shell
       - name: Run plz cover
         run: |
-          which python
-          python --version
           cd $GITHUB_WORKSPACE
           ./pleasew cover --profile ci

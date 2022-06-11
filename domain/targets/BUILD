@@ -1,7 +1,7 @@
 package(default_visibility = ["PUBLIC"])
 
 python_library(
-    name = "imports",
+    name = "targets",
     srcs = glob(
         ["*.py"],
         exclude = ["_test.py"],
@@ -10,15 +10,13 @@ python_library(
         "//adapters",
         "//common/logger",
         "//converters",
-        "//imports/stdlib",
     ],
 )
 
 python_test(
-    name = "imports_test",
+    name = "targets_test",
     srcs = glob(["*_test.py"]),
     deps = [
-        ":imports",
-        "//utils",
+        ":targets",
     ],
 )
