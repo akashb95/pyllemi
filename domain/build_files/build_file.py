@@ -13,7 +13,7 @@ class BUILDFile:
         self._ast_calls: list[ast.Call] = []  # store references to build rule definition calls for easy modification
         return
 
-    def extract_targets(self):
+    def extract_targets(self, module: ast.Module):
         # TODO
         return
 

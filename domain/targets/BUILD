@@ -13,11 +13,10 @@ python_library(
     ],
 )
 
-# python_test(
-#     name = "targets_test",
-#     srcs = glob(["*_test.py"]),
-#     deps = [
-#         ":imports",
-#         "//utils",
-#     ],
-# )
+python_test(
+    name = "targets_test",
+    srcs = glob(["*_test.py"]),
+    deps = [
+        ":targets",
+    ],
+)

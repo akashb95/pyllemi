@@ -9,7 +9,7 @@ class TestBuildFile(unittest.TestCase):
     def test_add_target(self):
         build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
         build_file.add_target(
-            PythonLibrary(name="x", srcs={"x.py", "y.py"}, deps={"dep_2.py", "dep_1.py"}, visibility={"PUBLIC"}),
+            PythonLibrary(name="x", srcs={"x.py", "y.py"}, deps={"//path/to:target", ":x"}, visibility={"PUBLIC"}),
         )
         self.assertEqual(
             ast.unparse(
@@ -28,7 +28,7 @@ class TestBuildFile(unittest.TestCase):
                                     ast.keyword(
                                         arg="deps",
                                         value=ast.List(
-                                            elts=[ast.Constant(value="dep_1.py"), ast.Constant(value="dep_2.py")],
+                                            elts=[ast.Constant(value="//path/to:target"), ast.Constant(value=":x")],
                                         ),
                                     ),
                                     ast.keyword(arg="visibility", value=ast.List(elts=[ast.Constant(value="PUBLIC")])),

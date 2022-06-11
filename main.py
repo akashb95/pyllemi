@@ -6,7 +6,7 @@ from common.logger.logger import setup_logger
 from adapters.custom_arg_types import existing_file_arg_type
 from domain.targets.resolver import Resolver
 from domain.imports.stdlib_modules import get_stdlib_module_names
-from domain.imports import NodesCollator
+from domain.imports.nodes_collator import NodesCollator
 from adapters.plz_query import (
     get_python_moduledir,
     get_reporoot,
