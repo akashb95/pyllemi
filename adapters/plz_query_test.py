@@ -1,7 +1,7 @@
 import functools
 import gc
 import os
-from unittest import TestCase, mock
+from unittest import TestCase, mock, skip
 
 from adapters.plz_query import (
     get_all_targets,
@@ -252,3 +252,8 @@ class TestGetBuildFileNames(TestCase):
         self.assertCountEqual(["BUILD.plz", "BUILD"], get_build_file_names())
         mock_get_config.assert_called_once_with("parse.buildfilename")
         return
+
+
+@skip("implement")
+class TestPrint(TestCase):
+    pass

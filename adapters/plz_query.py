@@ -29,6 +29,20 @@ def get_config(specifier: str) -> list[str]:
     return _convert_list_of_bytes_to_list_of_strs(proc.stdout)
 
 
+@cache
+def print_(target: str, field) -> list[str]:
+    cmd = ["plz", "query", "print", target, "-f", field]
+
+    LOGGER.debug(f"Getting field '{field}' for {target}")
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    if not _is_success_return_code(proc.returncode):
+        LOGGER.error(f"Got a non-zero return code while trying to fetch plz config for {target}")
+        raise RuntimeError(proc.stderr)
+
+    return _convert_list_of_bytes_to_list_of_strs(proc.stdout)
+
+
 @lru_cache(1)
 def get_python_moduledir() -> str:
     get_config_output = get_config("python.moduledir")
