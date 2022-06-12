@@ -8,6 +8,7 @@ python_library(
         "//adapters",
         "//common/logger",
         "//domain/imports",
+        "//domain/targets",
     ],
 )
 

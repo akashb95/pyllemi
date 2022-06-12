@@ -1,6 +1,6 @@
 import ast
 import logging
-from typing import Optional, Union
+from typing import Optional, Union, Iterator
 
 from common.logger.logger import setup_logger
 from domain.targets import target as domain_target
@@ -16,11 +16,25 @@ class BUILDFile:
         self._new_targets: list[domain_target.Python] = []
         return
 
+    def get_existing_ast_python_build_rules(self) -> Iterator[ast.Call]:
+        for node in ast.walk(self._ast_repr):
+            if is_ast_node_python_build_rule(node):
+                yield node
+        return
+
+    def get_all_existing_ast_python_build_rules(self) -> list[ast.Call]:
+        return [node for node in self.get_existing_ast_python_build_rules()]
+
     def add_target(self, target_to_add: domain_target.Python):
         self._new_targets.append(target_to_add)
         return
 
     def register_modified_build_rule_to_python_target(self, build_rule: ast.Call, python_target: domain_target.Python):
+        """
+        This method does _not_ verify that the given ast.Call is in this BUILDFile's AST representation.
+        The caller must ensure that another BUILD file's AST node is not passed into this instance.
+        """
+
         self._modified_build_rule_to_domain_python_target[build_rule] = python_target
         return
 
@@ -95,7 +109,7 @@ def is_ast_node_python_build_rule(node: ast.AST) -> bool:
     return (
             isinstance(node, ast.Call) and
             isinstance(node.func, ast.Name) and
-            node.func.id in domain_target.PythonTargetTypes
+            domain_target.is_python_target_type(node.func.id)
     )
 
 

@@ -2,7 +2,7 @@ import ast
 import unittest
 
 from domain.build_files.build_file import BUILDFile
-from domain.targets.target import PythonLibrary
+from domain.targets.target import PythonLibrary, PythonTest
 
 
 class TestBuildFile(unittest.TestCase):
@@ -103,5 +103,71 @@ class TestBuildFile(unittest.TestCase):
         self.assertEqual(
             "python_library(name='x', srcs=['x.py', 'y.py'], deps=['dep_1.py', 'dep_2.py'])",
             build_file.dump_ast(),
+        )
+        return
+
+    def test_get_existing_ast_python_build_rules(self):
+        python_library = ast.Call(
+            func=ast.Name(id="python_library"),
+            args=[],
+            keywords=[
+                ast.keyword(arg="name", value=ast.Constant(value="x")),
+                ast.keyword(
+                    arg="srcs",
+                    value=ast.List(elts=[ast.Constant(value="x.py"), ast.Constant(value="y.py")]),
+                ),
+                ast.keyword(
+                    arg="deps",
+                    value=ast.List(
+                        elts=[ast.Constant(value="//path/to:target"), ast.Constant(value=":z")],
+                    ),
+                ),
+            ]
+        )
+        # python_test = ast.Call(
+        #     func=ast.Name(id="python_test"),
+        #     args=[],
+        #     keywords=[
+        #         ast.keyword(arg="name", value=ast.Constant(value="x_test")),
+        #         ast.keyword(
+        #             arg="srcs",
+        #             value=ast.List(elts=[ast.Constant(value="x_test.py"), ast.Constant(value="y_test.py")]),
+        #         ),
+        #         ast.keyword(
+        #             arg="deps",
+        #             value=ast.List(
+        #                 elts=[ast.Constant(value="//path/to:target"), ast.Constant(value=":x")],
+        #             ),
+        #         ),
+        #     ]
+        # )
+
+        python_library_as_domain_target = PythonLibrary(
+            name="x",
+            srcs={"x.py", "y.py"}, deps={"//path/to:target", ":z"},
+        )
+        python_test_as_domain_target = PythonTest(
+            name="x_test",
+            srcs={"x_test.py", "y_test.py"}, deps={"//path/to:target", ":x"},
+        )
+
+        build_file = BUILDFile(
+            ast.Module(
+                body=[
+                    ast.Expr(ast.Call(func=ast.Name(id="should_not_matter"))),
+                    ast.Expr(python_library),
+                    # ast.Expr(python_test),
+                    ast.Expr(ast.Call(func=ast.Name(id="should_not_matter")))
+                ],
+                type_ignores=[],
+            ),
+        )
+
+        self.assertEqual(
+            [
+                python_library,
+                # python_test,
+            ],
+            build_file.get_all_existing_ast_python_build_rules(),
         )
         return
