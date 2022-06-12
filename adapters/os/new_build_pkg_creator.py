@@ -34,7 +34,6 @@ class NewBuildPkgCreator:
             name=target_name,
             srcs=self._new_package_module_finder.library_targets,
             deps=set(),
-            other_kwargs={},
         )
 
     def _infer_python_test(self, *, target_name) -> Optional[target.PythonTest]:
@@ -44,5 +43,4 @@ class NewBuildPkgCreator:
             name=target_name,
             srcs=self._new_package_module_finder.test_targets,
             deps=set(),
-            other_kwargs={},
         )

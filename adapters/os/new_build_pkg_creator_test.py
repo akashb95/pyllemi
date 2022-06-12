@@ -12,7 +12,7 @@ class MyTestCase(MockPythonLibraryWithNewBuildPkgTestCase):
         library, test = new_build_pkg_creator.infer_py_targets()
         self.assertIsNone(test)
         self.assertEqual(
-            target.PythonLibrary(name="new_pkg", srcs={"module.py", "stub_module.pyi"}, deps=set(), other_kwargs={}),
+            target.PythonLibrary(name="new_pkg", srcs={"module.py", "stub_module.pyi"}, deps=set()),
             library,
         )
         return
@@ -25,7 +25,7 @@ class MyTestCase(MockPythonLibraryWithNewBuildPkgTestCase):
         library, test = new_build_pkg_creator.infer_py_targets()
         self.assertIsNone(library)
         self.assertEqual(
-            target.PythonTest(name="new_pkg_test", srcs={"module_test.py"}, deps=set(), other_kwargs={}),
+            target.PythonTest(name="new_pkg_test", srcs={"module_test.py"}, deps=set()),
             test,
         )
         return
@@ -35,11 +35,11 @@ class MyTestCase(MockPythonLibraryWithNewBuildPkgTestCase):
 
         library, test = new_build_pkg_creator.infer_py_targets()
         self.assertEqual(
-            target.PythonLibrary(name="new_pkg", srcs={"module.py", "stub_module.pyi"}, deps=set(), other_kwargs={}),
+            target.PythonLibrary(name="new_pkg", srcs={"module.py", "stub_module.pyi"}, deps=set()),
             library,
         )
         self.assertEqual(
-            target.PythonTest(name="new_pkg_test", srcs={"module_test.py"}, deps=set(), other_kwargs={}),
+            target.PythonTest(name="new_pkg_test", srcs={"module_test.py"}, deps=set()),
             test,
         )
         return
