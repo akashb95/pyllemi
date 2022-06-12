@@ -1,7 +1,8 @@
 import ast
 import logging
-from typing import Optional, Union, Iterator
+from typing import Iterator, Union
 
+import domain.build_files.converters as domain_converters
 from common.logger.logger import setup_logger
 from domain.targets import target as domain_target
 
@@ -53,56 +54,9 @@ class BUILDFile:
 
     def _add_new_targets_to_ast(self):
         for new_target in self._new_targets:
-            if (target_as_ast_call := convert_python_target_to_ast_call_node(new_target)) is not None:
+            if (target_as_ast_call := domain_converters.python_target_to_ast_call_node(new_target)) is not None:
                 self._ast_repr.body.append(ast.Expr(value=target_as_ast_call))
         return
-
-
-def convert_python_target_to_ast_call_node(t: domain_target.Target) -> Optional[ast.Call]:
-    if t.type_ == domain_target.PythonTargetTypes.PYTHON_LIBRARY:
-        return ast.Call(
-            func=ast.Name(id=domain_target.PythonTargetTypes.PYTHON_LIBRARY.value),
-            keywords=convert_kwargs_to_ast_keywords(**t.kwargs),
-            args=[],
-        )
-
-    if t.type_ == domain_target.PythonTargetTypes.PYTHON_TEST:
-        return ast.Call(
-            func=ast.Name(id=domain_target.PythonTargetTypes.PYTHON_TEST.value),
-            keywords=convert_kwargs_to_ast_keywords(**t.kwargs),
-            args=[],
-        )
-
-    if t.type_ == domain_target.PythonTargetTypes.PYTHON_BINARY:
-        return ast.Call(
-            func=ast.Name(id=domain_target.PythonTargetTypes.PYTHON_BINARY.value),
-            keywords=convert_kwargs_to_ast_keywords(**t.kwargs),
-            args=[],
-        )
-
-    return
-
-
-def convert_kwargs_to_ast_keywords(**kwargs) -> list[ast.keyword]:
-    keywords: list[ast.keyword] = []
-    for key, value in kwargs.items():
-        if (keyword := convert_kwarg_to_ast_keyword(key, value)) is not None:
-            keywords.append(keyword)
-    return keywords
-
-
-def convert_kwarg_to_ast_keyword(key: str, value: _BUILD_RULE_KWARG_VALUE_TYPE) -> Optional[ast.keyword]:
-    if isinstance(value, Union[list, set]):
-        values = sorted(list(value))
-        return ast.keyword(
-            arg=key,
-            value=ast.List(elts=[ast.Constant(value=constant_value) for constant_value in values]),
-        )
-    elif isinstance(value, Union[str, int, bool]):
-        return ast.keyword(arg=key, value=ast.Constant(value=value))
-
-    # Note that a value can also be of type dict, but we should never need to write this to a BUILD file from here.
-    return
 
 
 def is_ast_node_python_build_rule(node: ast.AST) -> bool:
@@ -116,6 +70,6 @@ def is_ast_node_python_build_rule(node: ast.AST) -> bool:
 def _update_ast_call_keywords(node: ast.Call, key_to_value: dict[str, _BUILD_RULE_KWARG_VALUE_TYPE]) -> None:
     for i, k in enumerate(node.keywords):
         if k.arg in key_to_value:
-            k.value = convert_kwarg_to_ast_keyword(k.arg, key_to_value[k.arg]).value
+            k.value = domain_converters.kwarg_to_ast_keyword(k.arg, key_to_value[k.arg]).value
 
     return
