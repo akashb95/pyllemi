@@ -25,8 +25,12 @@ def from_ast_node_to_python_target(node: ast.Call) -> Python:
 
     match node.func.id:
         case PythonTargetTypes.PYTHON_LIBRARY:
+            if len(node.args) > 0:
+                name_as_arg = node.args[0]
+                if isinstance(name_as_arg, ast.Constant):
+                    name = name_as_arg.value
             for keyword in node.keywords:
-                if keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
+                if name is None and keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
                     name = keyword.value.value
 
                 elif keyword.arg == "srcs" and isinstance(keyword.value, ast.List):
@@ -46,8 +50,12 @@ def from_ast_node_to_python_target(node: ast.Call) -> Python:
             return PythonLibrary(name=name, deps=deps, srcs=srcs)
 
         case PythonTargetTypes.PYTHON_TEST:
+            if len(node.args) > 0:
+                name_as_arg = node.args[0]
+                if isinstance(name_as_arg, ast.Constant):
+                    name = name_as_arg.value
             for keyword in node.keywords:
-                if keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
+                if name is None and keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
                     name = keyword.value.value
 
                 elif keyword.arg == "srcs" and isinstance(keyword.value, ast.List):
@@ -67,12 +75,21 @@ def from_ast_node_to_python_target(node: ast.Call) -> Python:
             return PythonTest(name=name, deps=deps, srcs=srcs)
 
         case PythonTargetTypes.PYTHON_BINARY:
-            main: str = ""
+            main: Optional[str] = None
+            if len(node.args) > 0:
+                name_as_arg = node.args[0]
+                if isinstance(name_as_arg, ast.Constant):
+                    name = name_as_arg.value
+            if len(node.args) > 1:
+                main_as_arg = node.args[1]
+                if isinstance(main_as_arg, ast.Constant):
+                    name = main_as_arg.value
+
             for keyword in node.keywords:
-                if keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
+                if name is None and keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
                     name = keyword.value.value
 
-                elif keyword.arg == "main" and isinstance(keyword.value, ast.Constant):
+                elif main is None and keyword.arg == "main" and isinstance(keyword.value, ast.Constant):
                     main = keyword.value.value
 
                 elif keyword.arg == "deps" and isinstance(keyword.value, ast.List):
