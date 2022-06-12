@@ -1,84 +1,103 @@
 import ast
 import logging
-from typing import Optional, Union
+from typing import Iterator
 
+import domain.build_files.converters as domain_converters
 from common.logger.logger import setup_logger
-from domain.targets import target
+from domain.targets import target as domain_target
+from domain.build_files.common_types import BUILD_RULE_KWARG_VALUE_TYPE
 
 
 class BUILDFile:
+    """
+    Domain representation of a BUILD file, and its constituent build targets.
+    Stores and provides methods to modify the AST representation of these targets.
+    """
+
     def __init__(self, ast_repr: ast.Module):
         self._logger = setup_logger(__file__, logging.INFO)
         self._ast_repr: ast.Module = ast_repr
-        self._ast_calls: list[ast.Call] = []  # store references to build rule definition calls for easy modification
+        self._modified_build_rule_to_domain_python_target: dict[
+            ast.Call, domain_target.Python
+        ] = {}
+        self._new_targets: list[domain_target.Python] = []
+        self._modifiable_nodes: set[ast.Call] = set(
+            self._get_all_existing_ast_python_build_rules()
+        )
         return
 
-    def extract_targets(self, module: ast.Module):
-        # TODO
+    def get_existing_ast_python_build_rules(self) -> Iterator[ast.Call]:
+        for node in self._modifiable_nodes:
+            yield node
         return
 
-    def add_target(self, target_to_add: target.Target):
-        self._ast_repr.body.append(ast.Expr(value=convert_target_to_ast_call(target_to_add)))
+    def _get_all_existing_ast_python_build_rules(self) -> set[ast.Call]:
+        # noinspection PyTypeChecker
+        return {
+            node
+            for node in ast.walk(self._ast_repr)
+            if is_ast_node_python_build_rule(node)
+        }
+
+    def add_new_target(self, target_to_add: domain_target.Python):
+        self._new_targets.append(target_to_add)
         return
 
-    def update_target_attribute(self, idx: int, key: str, value: Union[list, str, int, bool]):
-        # TODO
-        if idx > len(self._ast_calls) - 1 or idx < 0:
-            raise IndexError()
-        if key not in target.Target.modifiable_attributes:
-            self._logger.error(f"Programming error: not allowed to modify attribute {key}.")
-        # self._ast_calls[idx] = convert_target_to_ast_call(target_to_update_to)
+    def register_modified_build_rule_to_python_target(
+        self, build_rule: ast.Call, python_target: domain_target.Python
+    ):
+        if build_rule not in self._modifiable_nodes:
+            raise ValueError(
+                "Programming Error: cannot modified given ast.Call node - it is not in the set of modifiable nodes"
+            )
+        self._modified_build_rule_to_domain_python_target[build_rule] = python_target
         return
 
     def dump_ast(self) -> str:
-        self._logger.info(ast.unparse(self._ast_repr))
+        self._add_new_targets_to_ast()
+        self._reflect_changes_to_python_targets_in_ast()
+        return ast.unparse(self._ast_repr)
 
-        unparsed_ast = ast.unparse(self._ast_repr)
-        return unparsed_ast
+    def _reflect_changes_to_python_targets_in_ast(self):
+        for (
+            ast_call,
+            domain_python_target,
+        ) in self._modified_build_rule_to_domain_python_target.items():
+            _update_ast_call_keywords(
+                ast_call,
+                {
+                    "deps": domain_python_target.kwargs["deps"],
+                    "srcs": domain_python_target.kwargs["srcs"],
+                },
+            )
+        return
 
-
-def convert_target_to_ast_call(t: target.Target) -> Optional[ast.Call]:
-    if t.type_ == target.PythonTargetTypes.PYTHON_LIBRARY:
-        return ast.Call(
-            func=ast.Name(id=target.PythonTargetTypes.PYTHON_LIBRARY.value),
-            keywords=convert_kwargs_to_ast_keywords(**t.kwargs),
-            args=[],
-        )
-
-    if t.type_ == target.PythonTargetTypes.PYTHON_TEST:
-        return ast.Call(
-            func=ast.Name(id=target.PythonTargetTypes.PYTHON_TEST.value),
-            keywords=convert_kwargs_to_ast_keywords(**t.kwargs),
-            args=[],
-        )
-
-    if t.type_ == target.PythonTargetTypes.PYTHON_BINARY:
-        return ast.Call(
-            func=ast.Name(id=target.PythonTargetTypes.PYTHON_BINARY.value),
-            keywords=convert_kwargs_to_ast_keywords(**t.kwargs),
-            args=[],
-        )
-
-    return
+    def _add_new_targets_to_ast(self):
+        for new_target in self._new_targets:
+            if (
+                target_as_ast_call := domain_converters.python_target_to_ast_call_node(
+                    new_target
+                )
+            ) is not None:
+                self._ast_repr.body.append(ast.Expr(value=target_as_ast_call))
+        return
 
 
-def convert_kwargs_to_ast_keywords(**kwargs) -> list[ast.keyword]:
-    keywords: list[ast.keyword] = []
-    for key, value in kwargs.items():
-        if (keyword := convert_kwarg_to_ast_keyword(key, value)) is not None:
-            keywords.append(keyword)
-    return keywords
+def is_ast_node_python_build_rule(node: ast.AST) -> bool:
+    return (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and domain_target.is_python_target_type(node.func.id)
+    )
 
 
-def convert_kwarg_to_ast_keyword(key: str, value: Union[bool, int, list, set, str]) -> Optional[ast.keyword]:
-    if isinstance(value, Union[list, set]):
-        values = sorted(list(value))
-        return ast.keyword(
-            arg=key,
-            value=ast.List(elts=[ast.Constant(value=constant_value) for constant_value in values]),
-        )
-    elif isinstance(value, Union[str, int, bool]):
-        return ast.keyword(arg=key, value=ast.Constant(value=value))
+def _update_ast_call_keywords(
+    node: ast.Call, key_to_value: dict[str, BUILD_RULE_KWARG_VALUE_TYPE]
+) -> None:
+    for i, k in enumerate(node.keywords):
+        if k.arg in key_to_value:
+            k.value = domain_converters.kwarg_to_ast_keyword(
+                k.arg, key_to_value[k.arg]
+            ).value
 
-    # Note that a value can also be of type dict, but we should never need to write this to a BUILD file from here.
     return
