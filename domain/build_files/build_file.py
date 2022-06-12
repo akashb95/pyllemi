@@ -9,6 +9,11 @@ from domain.build_files.common_types import BUILD_RULE_KWARG_VALUE_TYPE
 
 
 class BUILDFile:
+    """
+    Domain representation of a BUILD file, and its constituent build targets.
+    Stores and provides methods to modify the AST representation of these targets.
+    """
+
     def __init__(self, ast_repr: ast.Module):
         self._logger = setup_logger(__file__, logging.INFO)
         self._ast_repr: ast.Module = ast_repr
@@ -26,7 +31,7 @@ class BUILDFile:
         # noinspection PyTypeChecker
         return {node for node in ast.walk(self._ast_repr) if is_ast_node_python_build_rule(node)}
 
-    def add_target(self, target_to_add: domain_target.Python):
+    def add_new_target(self, target_to_add: domain_target.Python):
         self._new_targets.append(target_to_add)
         return
 

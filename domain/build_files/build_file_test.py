@@ -8,7 +8,7 @@ from domain.targets.target import PythonLibrary, PythonTest
 class TestBuildFile(unittest.TestCase):
     def test_parses_new_targets_into_ast(self):
         build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
-        build_file.add_target(
+        build_file.add_new_target(
             PythonLibrary(name="x", srcs={"x.py", "y.py"}, deps={"//path/to:target", ":x"}),
         )
         build_file._add_new_targets_to_ast()
@@ -98,7 +98,7 @@ class TestBuildFile(unittest.TestCase):
 
     def test_dump_ast(self):
         build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
-        build_file.add_target(
+        build_file.add_new_target(
             PythonLibrary(name="x", srcs={"x.py", "y.py"}, deps={"dep_2.py", "dep_1.py"}))
         self.assertEqual(
             "python_library(name='x', srcs=['x.py', 'y.py'], deps=['dep_1.py', 'dep_2.py'])",
