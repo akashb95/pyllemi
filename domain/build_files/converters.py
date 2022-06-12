@@ -1,7 +1,7 @@
 import ast
 from typing import Optional, Union
 
-from domain.build_files.build_file import _BUILD_RULE_KWARG_VALUE_TYPE
+from domain.build_files.common_types import BUILD_RULE_KWARG_VALUE_TYPE
 from domain.targets import target as domain_target
 
 
@@ -38,7 +38,7 @@ def kwargs_to_ast_keywords(**kwargs) -> list[ast.keyword]:
     return keywords
 
 
-def kwarg_to_ast_keyword(key: str, value: _BUILD_RULE_KWARG_VALUE_TYPE) -> Optional[ast.keyword]:
+def kwarg_to_ast_keyword(key: str, value: BUILD_RULE_KWARG_VALUE_TYPE) -> Optional[ast.keyword]:
     if isinstance(value, Union[list, set]):
         values = sorted(list(value))
         return ast.keyword(

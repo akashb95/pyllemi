@@ -1,12 +1,11 @@
 import ast
 import logging
-from typing import Iterator, Union
+from typing import Iterator
 
 import domain.build_files.converters as domain_converters
 from common.logger.logger import setup_logger
 from domain.targets import target as domain_target
-
-_BUILD_RULE_KWARG_VALUE_TYPE = Union[bool, int, list, set, str]
+from domain.build_files.common_types import BUILD_RULE_KWARG_VALUE_TYPE
 
 
 class BUILDFile:
@@ -67,7 +66,7 @@ def is_ast_node_python_build_rule(node: ast.AST) -> bool:
     )
 
 
-def _update_ast_call_keywords(node: ast.Call, key_to_value: dict[str, _BUILD_RULE_KWARG_VALUE_TYPE]) -> None:
+def _update_ast_call_keywords(node: ast.Call, key_to_value: dict[str, BUILD_RULE_KWARG_VALUE_TYPE]) -> None:
     for i, k in enumerate(node.keywords):
         if k.arg in key_to_value:
             k.value = domain_converters.kwarg_to_ast_keyword(k.arg, key_to_value[k.arg]).value
