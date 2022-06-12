@@ -75,15 +75,3 @@ class PythonTest(Python):
     def __init__(self, *, name: str, srcs: set[str], deps: set[str]):
         super().__init__(rule_name="python_test", name=name, srcs=srcs, deps=deps)
         return
-
-
-# def convert_file_to_targets(source: str) -> tuple[list[Target], list[ast.AST]]:
-#     targets: list[Target] = []
-#     target_nodes: list[ast.AST] = []
-#     root = ast.parse(source)
-#     for node in ast.walk(root):
-#         if (target_definition := get_python_target(node)) is None:
-#             continue
-#         targets.append(target_definition)
-#         target_nodes.append(node)
-#     return targets, target_nodes
