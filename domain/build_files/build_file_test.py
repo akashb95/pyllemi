@@ -124,31 +124,22 @@ class TestBuildFile(unittest.TestCase):
                 ),
             ]
         )
-        # python_test = ast.Call(
-        #     func=ast.Name(id="python_test"),
-        #     args=[],
-        #     keywords=[
-        #         ast.keyword(arg="name", value=ast.Constant(value="x_test")),
-        #         ast.keyword(
-        #             arg="srcs",
-        #             value=ast.List(elts=[ast.Constant(value="x_test.py"), ast.Constant(value="y_test.py")]),
-        #         ),
-        #         ast.keyword(
-        #             arg="deps",
-        #             value=ast.List(
-        #                 elts=[ast.Constant(value="//path/to:target"), ast.Constant(value=":x")],
-        #             ),
-        #         ),
-        #     ]
-        # )
-
-        python_library_as_domain_target = PythonLibrary(
-            name="x",
-            srcs={"x.py", "y.py"}, deps={"//path/to:target", ":z"},
-        )
-        python_test_as_domain_target = PythonTest(
-            name="x_test",
-            srcs={"x_test.py", "y_test.py"}, deps={"//path/to:target", ":x"},
+        python_test = ast.Call(
+            func=ast.Name(id="python_test"),
+            args=[],
+            keywords=[
+                ast.keyword(arg="name", value=ast.Constant(value="x_test")),
+                ast.keyword(
+                    arg="srcs",
+                    value=ast.List(elts=[ast.Constant(value="x_test.py"), ast.Constant(value="y_test.py")]),
+                ),
+                ast.keyword(
+                    arg="deps",
+                    value=ast.List(
+                        elts=[ast.Constant(value="//path/to:target"), ast.Constant(value=":x")],
+                    ),
+                ),
+            ]
         )
 
         build_file = BUILDFile(
@@ -156,7 +147,7 @@ class TestBuildFile(unittest.TestCase):
                 body=[
                     ast.Expr(ast.Call(func=ast.Name(id="should_not_matter"))),
                     ast.Expr(python_library),
-                    # ast.Expr(python_test),
+                    ast.Expr(python_test),
                     ast.Expr(ast.Call(func=ast.Name(id="should_not_matter")))
                 ],
                 type_ignores=[],
@@ -166,7 +157,7 @@ class TestBuildFile(unittest.TestCase):
         self.assertEqual(
             [
                 python_library,
-                # python_test,
+                python_test,
             ],
             build_file.get_all_existing_ast_python_build_rules(),
         )
