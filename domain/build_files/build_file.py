@@ -14,27 +14,27 @@ class BUILDFile:
         self._ast_repr: ast.Module = ast_repr
         self._modified_build_rule_to_domain_python_target: dict[ast.Call, domain_target.Python] = {}
         self._new_targets: list[domain_target.Python] = []
+        self._modifiable_nodes: set[ast.Call] = set(self._get_all_existing_ast_python_build_rules())
         return
 
     def get_existing_ast_python_build_rules(self) -> Iterator[ast.Call]:
-        for node in ast.walk(self._ast_repr):
-            if is_ast_node_python_build_rule(node):
-                yield node
+        for node in self._modifiable_nodes:
+            yield node
         return
 
-    def get_all_existing_ast_python_build_rules(self) -> list[ast.Call]:
-        return [node for node in self.get_existing_ast_python_build_rules()]
+    def _get_all_existing_ast_python_build_rules(self) -> set[ast.Call]:
+        # noinspection PyTypeChecker
+        return {node for node in ast.walk(self._ast_repr) if is_ast_node_python_build_rule(node)}
 
     def add_target(self, target_to_add: domain_target.Python):
         self._new_targets.append(target_to_add)
         return
 
     def register_modified_build_rule_to_python_target(self, build_rule: ast.Call, python_target: domain_target.Python):
-        """
-        This method does _not_ verify that the given ast.Call is in this BUILDFile's AST representation.
-        The caller must ensure that another BUILD file's AST node is not passed into this instance.
-        """
-
+        if build_rule not in self._modifiable_nodes:
+            raise ValueError(
+                "Programming Error: cannot modified given ast.Call node - it is not in the set of modifiable nodes"
+            )
         self._modified_build_rule_to_domain_python_target[build_rule] = python_target
         return
 

@@ -155,10 +155,7 @@ class TestBuildFile(unittest.TestCase):
         )
 
         self.assertEqual(
-            [
-                python_library,
-                python_test,
-            ],
-            build_file.get_all_existing_ast_python_build_rules(),
+            {python_library, python_test},
+            build_file._get_all_existing_ast_python_build_rules(),
         )
         return
