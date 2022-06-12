@@ -2,7 +2,7 @@ import ast
 import unittest
 
 from domain.build_files.build_file import BUILDFile
-from domain.targets.target import PythonLibrary, PythonTest
+from domain.targets.target import PythonLibrary
 
 
 class TestBuildFile(unittest.TestCase):
