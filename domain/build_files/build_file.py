@@ -2,10 +2,11 @@ import ast
 import logging
 from typing import Iterator
 
-import domain.build_files.converters as domain_converters
+import domain.ast.converters as ast_converters
+import domain.targets.converters as target_converters
 from common.logger.logger import setup_logger
-from domain.targets import target as domain_target
-from domain.build_files.common_types import BUILD_RULE_KWARG_VALUE_TYPE
+from domain.targets import python_target as domain_target
+from domain.targets.utils import is_ast_node_python_build_rule
 
 
 class BUILDFile:
@@ -75,7 +76,7 @@ class BUILDFile:
     def _add_new_targets_to_ast(self):
         for new_target in self._new_targets:
             if (
-                target_as_ast_call := domain_converters.python_target_to_ast_call_node(
+                target_as_ast_call := target_converters.python_target_to_ast_call_node(
                     new_target
                 )
             ) is not None:
@@ -83,20 +84,12 @@ class BUILDFile:
         return
 
 
-def is_ast_node_python_build_rule(node: ast.AST) -> bool:
-    return (
-        isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Name)
-        and domain_target.is_python_target_type(node.func.id)
-    )
-
-
 def _update_ast_call_keywords(
-    node: ast.Call, key_to_value: dict[str, BUILD_RULE_KWARG_VALUE_TYPE]
+    node: ast.Call, key_to_value: dict[str, ast_converters.BUILD_RULE_KWARG_VALUE_TYPE]
 ) -> None:
     for i, k in enumerate(node.keywords):
         if k.arg in key_to_value:
-            k.value = domain_converters.kwarg_to_ast_keyword(
+            k.value = ast_converters.kwarg_to_ast_keyword(
                 k.arg, key_to_value[k.arg]
             ).value
 

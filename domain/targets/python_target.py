@@ -17,11 +17,6 @@ class PythonTargetTypes(Enum):
         return True
 
 
-def is_python_target_type(item):
-    t = PythonTargetTypes.UNKNOWN
-    return item in t
-
-
 class Target:
     modifiable_attributes = frozenset({"srcs", "deps"})
 

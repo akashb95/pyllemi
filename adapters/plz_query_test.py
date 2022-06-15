@@ -1,6 +1,7 @@
 import functools
 import gc
 import os
+import subprocess
 from unittest import TestCase, mock, skip
 
 from adapters.plz_query import (
@@ -9,6 +10,7 @@ from adapters.plz_query import (
     get_config,
     get_third_party_module_targets,
     get_plz_build_graph,
+    get_print,
     get_reporoot,
     get_whatinputs,
     WhatInputsResult,
@@ -254,6 +256,17 @@ class TestGetBuildFileNames(TestCase):
         return
 
 
-@skip("implement")
 class TestPrint(TestCase):
-    pass
+    @mock.patch("adapters.plz_query.subprocess.Popen")
+    def test_print(self, mock_subprocess_popen):
+        process_mock = mock.Mock()
+        stdout_mock_return_value = [b"__init__.py", b"module.py"]
+        process_mock.configure_mock(**{"stdout": stdout_mock_return_value, "returncode": None})
+        mock_subprocess_popen.return_value = process_mock
+
+        self.assertEqual(["__init__.py", "module.py"], get_print("//path/to:target", "srcs"))
+        mock_subprocess_popen.assert_called_once_with(
+            ["plz", "query", "print", "//path/to:target", "-f", "srcs"],
+            stdout=subprocess.PIPE,
+        )
+        return

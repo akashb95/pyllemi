@@ -10,6 +10,7 @@ python_library(
         "//adapters",
         "//common/logger",
         "//converters",
+        "//domain/ast",
     ],
 )
 

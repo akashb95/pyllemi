@@ -30,7 +30,7 @@ def get_config(specifier: str) -> list[str]:
 
 
 @cache
-def print_(target: str, field) -> list[str]:
+def get_print(target: str, field) -> list[str]:
     cmd = ["plz", "query", "print", target, "-f", field]
 
     LOGGER.debug(f"Getting field '{field}' for {target}")

@@ -2,7 +2,7 @@ import os.path
 from typing import Optional
 
 from adapters.os.new_package_module_finder import NewPackageModuleFinder
-from domain.targets import target
+from domain.targets import python_target as target
 
 
 class NewBuildPkgCreator:
