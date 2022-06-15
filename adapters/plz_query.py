@@ -1,8 +1,7 @@
-import os
 import json
+import os
 import re
 import subprocess
-import sys
 from collections import namedtuple
 from functools import cache, lru_cache
 from logging import INFO

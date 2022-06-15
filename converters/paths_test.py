@@ -1,11 +1,11 @@
 import os
 from unittest import TestCase
 
-from utils.mock_python_library_test_case import MockPythonLibraryTestCase
 from converters.paths import (
     convert_py_import_path_to_os_path,
     convert_os_path_to_import_path,
 )
+from utils.mock_python_library_test_case import MockPythonLibraryTestCase
 
 
 class TestConvertPyImportPathToOSPath(MockPythonLibraryTestCase):

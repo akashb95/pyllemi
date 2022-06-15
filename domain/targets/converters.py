@@ -1,11 +1,11 @@
 import ast
 from typing import Optional
 
-from adapters.plz_query import get_print
 import domain.ast.converters as ast_converters
-from domain.targets.utils import is_ast_node_python_build_rule
+from adapters.plz_query import get_print
 from domain.targets.plz_target import PlzTarget
 from domain.targets.python_target import PythonBinary, PythonLibrary, Python, PythonTargetTypes, PythonTest, Target
+from domain.targets.utils import is_ast_node_python_build_rule
 
 
 def from_ast_node_to_python_target(node: ast.Call, build_target_path: PlzTarget) -> Python:

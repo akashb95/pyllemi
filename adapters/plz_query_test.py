@@ -2,7 +2,7 @@ import functools
 import gc
 import os
 import subprocess
-from unittest import TestCase, mock, skip
+from unittest import TestCase, mock
 
 from adapters.plz_query import (
     get_all_targets,
