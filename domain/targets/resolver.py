@@ -14,11 +14,11 @@ class Resolver:
     third_party_module_targets: set[str]
 
     def __init__(
-            self,
-            reporoot: str,
-            python_moduledir: str,
-            std_lib_modules: set[str],
-            third_party_module_targets: set[str],
+        self,
+        reporoot: str,
+        python_moduledir: str,
+        std_lib_modules: set[str],
+        third_party_module_targets: set[str],
     ):
         self._logger = setup_logger(__name__, logging.INFO)
 
@@ -50,9 +50,7 @@ class Resolver:
             return
 
         # Resolve 3rd-party library targets.
-        possible_third_party_module_target = (
-            f"//{self.python_moduledir}:{top_level_module_name}".replace(".", "/")
-        )
+        possible_third_party_module_target = f"//{self.python_moduledir}:{top_level_module_name}".replace(".", "/")
         if possible_third_party_module_target in self.third_party_module_targets:
             self.third_party_module_imports.add(possible_third_party_module_target)
             return

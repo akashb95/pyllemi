@@ -24,9 +24,7 @@ class TestToImportPaths(MockPythonLibraryTestCase):
         return
 
     def test_import_nodes(self):
-        node = ast.Import(
-            names=[ast.alias(name="numpy.random", asname="rand"), ast.alias(name="os")]
-        )
+        node = ast.Import(names=[ast.alias(name="numpy.random", asname="rand"), ast.alias(name="os")])
         self.assertEqual(
             [EnrichedImport("numpy.random", ImportType.UNKNOWN), EnrichedImport("os", ImportType.UNKNOWN)],
             self.transformer.convert_all([node]),
@@ -110,11 +108,7 @@ class TestToImportPaths(MockPythonLibraryTestCase):
         return
 
     def test_relative_import_from_module_without_parent_pkg_errors(self):
-        node = ast.ImportFrom(
-            module="does.not.matter",
-            level=1,
-            names=[ast.alias(name="x")]
-        )
+        node = ast.ImportFrom(module="does.not.matter", level=1, names=[ast.alias(name="x")])
 
         self.assertRaisesRegex(
             ImportError,
@@ -128,33 +122,25 @@ class TestToImportPaths(MockPythonLibraryTestCase):
 
     def test_relative_import_when_moving_out_of_root_dir_errors(self):
         with self.subTest("with module specified"):
-            node = ast.ImportFrom(
-                module="does.not.matter",
-                level=4,
-                names=[ast.alias(name="x")]
-            )
+            node = ast.ImportFrom(module="does.not.matter", level=4, names=[ast.alias(name="x")])
 
             self.assertRaisesRegex(
                 ImportError,
                 "attempted relative import beyond top-level package",
                 self.transformer.convert_all,
                 [node],
-                pyfile_path=os.path.join("new_subpkg", "module.py")
+                pyfile_path=os.path.join("new_subpkg", "module.py"),
             )
 
         with self.subTest("with no module specified"):
-            node = ast.ImportFrom(
-                module=None,
-                level=4,
-                names=[ast.alias(name="x")]
-            )
+            node = ast.ImportFrom(module=None, level=4, names=[ast.alias(name="x")])
 
             self.assertRaisesRegex(
                 ImportError,
                 "attempted relative import beyond top-level package",
                 self.transformer.convert_all,
                 [node],
-                pyfile_path=os.path.join("new_subpkg", "module.py")
+                pyfile_path=os.path.join("new_subpkg", "module.py"),
             )
 
         return
@@ -174,19 +160,27 @@ class TestToImportPaths(MockPythonLibraryTestCase):
             )
 
             self.assertEqual(
-                [EnrichedImport(f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}", ImportType.MODULE)],
+                [
+                    EnrichedImport(
+                        f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}", ImportType.MODULE
+                    )
+                ],
                 self.transformer.convert_all([node], pyfile_path=os.path.join("new_pkg", "module.py")),
             )
 
         with self.subTest("when module defined as a name"):
             node = ast.ImportFrom(
-                module=self.subpackage_dir.replace(os.path.sep, '.'),
+                module=self.subpackage_dir.replace(os.path.sep, "."),
                 level=2,
                 names=[ast.alias(name="test_module_1")],
             )
 
             self.assertEqual(
-                [EnrichedImport(f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}", ImportType.MODULE)],
+                [
+                    EnrichedImport(
+                        f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}", ImportType.MODULE
+                    )
+                ],
                 self.transformer.convert_all([node], pyfile_path=os.path.join("new_subpkg", "module.py")),
             )
 
@@ -206,16 +200,18 @@ class TestToImportPaths(MockPythonLibraryTestCase):
         )
 
         self.assertEqual(
-            [EnrichedImport(f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}", ImportType.MODULE)],
+            [
+                EnrichedImport(
+                    f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}", ImportType.MODULE
+                )
+            ],
             self.transformer.convert_all([node], pyfile_path=os.path.join("new_subpkg", "module.py")),
         )
 
         return
 
     def test_both_import_and_import_from_nodes(self):
-        import_node = ast.Import(
-            names=[ast.alias(name="numpy.random", asname="rand"), ast.alias(name="os")]
-        )
+        import_node = ast.Import(names=[ast.alias(name="numpy.random", asname="rand"), ast.alias(name="os")])
         absolute_import_from_node = ast.ImportFrom(
             module=self.test_dir,
             level=0,

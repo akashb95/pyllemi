@@ -1,12 +1,14 @@
 package(default_visibility = ["PUBLIC"])
 
 python_library(
-    name = "build_pkg",
+    name = "build_pkgs",
     srcs = glob(
         ["*.py"],
         exclude = ["_test.py"],
     ),
-    deps = [],
+    deps = [
+        "//common/logger",
+    ],
 )
 
 # python_test(

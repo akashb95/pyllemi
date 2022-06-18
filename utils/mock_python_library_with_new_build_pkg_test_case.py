@@ -13,29 +13,21 @@ class MockPythonLibraryWithNewBuildPkgTestCase(MockPythonLibraryTestCase):
         self.new_pkg_test_src = os.path.join(self.new_pkg_path, "module_test.py")
 
         if os.path.exists(self.new_pkg_path):
-            raise IsADirectoryError(
-                f"cannot create {self.new_pkg_path} for test setup: path already exists"
-            )
+            raise IsADirectoryError(f"cannot create {self.new_pkg_path} for test setup: path already exists")
         os.makedirs(self.new_pkg_path)
 
         if os.path.exists(self.new_pkg_lib_src_0):
-            raise FileNotFoundError(
-                f"cannot create {self.new_pkg_lib_src_0} for test setup: path already exists"
-            )
+            raise FileNotFoundError(f"cannot create {self.new_pkg_lib_src_0} for test setup: path already exists")
         with open(self.new_pkg_lib_src_0, "w") as f:
             f.write("x = 10")
 
         if os.path.exists(self.new_pkg_lib_src_1):
-            raise FileNotFoundError(
-                f"cannot create {self.new_pkg_lib_src_1} for test setup: path already exists"
-            )
+            raise FileNotFoundError(f"cannot create {self.new_pkg_lib_src_1} for test setup: path already exists")
         with open(self.new_pkg_lib_src_1, "w") as f:
             f.write("x = 1")
 
         if os.path.exists(self.new_pkg_test_src):
-            raise FileNotFoundError(
-                f"cannot create {self.new_pkg_test_src} for test setup: path already exists"
-            )
+            raise FileNotFoundError(f"cannot create {self.new_pkg_test_src} for test setup: path already exists")
         with open(self.new_pkg_test_src, "w") as f:
             f.write("x = 'test'")
 

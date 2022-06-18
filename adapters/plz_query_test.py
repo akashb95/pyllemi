@@ -37,9 +37,9 @@ class TestGetThirdPartyModules(TestCase):
     @mock.patch("adapters.plz_query.get_all_targets")
     @mock.patch("adapters.plz_query.get_config")
     def test_gets_third_party_modules(
-            self,
-            mock_get_config,
-            mock_get_all_targets,
+        self,
+        mock_get_config,
+        mock_get_all_targets,
     ):
         mock_get_config.return_value = ["third_party.python"]
         mock_get_all_targets.return_value = ["//third_party/python:a", "//third_party/python:b"]
@@ -61,8 +61,8 @@ class TestGetThirdPartyModules(TestCase):
 
     @mock.patch("adapters.plz_query.get_config")
     def test_errors_when_get_config_returns_unexpected_response(
-            self,
-            mock_get_config,
+        self,
+        mock_get_config,
     ):
         mock_get_config.return_value = []
         with self.assertRaises(AssertionError):
@@ -227,10 +227,7 @@ class TestGetBuildFileNames(TestCase):
     def setUp(self) -> None:
         # Clear all cache so that @lru_cache calls do not interfere with mocks.
         gc.collect()
-        wrappers = [
-            a for a in gc.get_objects()
-            if isinstance(a, functools._lru_cache_wrapper)
-        ]
+        wrappers = [a for a in gc.get_objects() if isinstance(a, functools._lru_cache_wrapper)]
 
         for wrapper in wrappers:
             wrapper.cache_clear()

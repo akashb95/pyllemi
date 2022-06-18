@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from enum import Enum
+from typing import Optional
 
 
 class PythonTargetTypes(Enum):
@@ -18,7 +19,8 @@ class PythonTargetTypes(Enum):
 
 
 class Target:
-    modifiable_attributes = frozenset({"srcs", "deps"})
+    readable_attributes = frozenset({"srcs", "deps"})
+    modifiable_attributes = frozenset({"deps"})
 
     def __init__(self, *, rule_name: str, **kwargs):
         self.rule_name = rule_name
@@ -35,7 +37,7 @@ class Target:
     def __str__(self) -> str:
         kwargs_repr = []
         for k, v in self.kwargs.items():
-            kwargs_repr.append(f'{k} = {v}')
+            kwargs_repr.append(f"{k} = {v}")
 
         return f"{self.rule_name}({', '.join(kwargs_repr)})"
 
@@ -52,6 +54,20 @@ class Target:
 
         return True
 
+    def __getitem__(self, item: str) -> Optional[set[str]]:
+        if item not in self.readable_attributes:
+            return None
+        return getattr(self.kwargs, item, None)
+
+    #
+    def __setitem__(self, key: str, value: set[str]) -> None:
+        if not hasattr(self, key):
+            raise AttributeError(f"{self.__name__} has no attribute '{key}'")
+
+        if key not in self.modifiable_attributes:
+            raise ValueError(f"'{key}' cannot be modified for a {self.__name__} object")
+        return setattr(self.kwargs, key, value)
+
 
 class Python(Target):
     def __init__(self, *, rule_name: str, name: str, srcs: set[str], deps: set[str], **kwargs):
@@ -61,7 +77,7 @@ class Python(Target):
 
 class PythonBinary(Python):
     def __init__(self, *, name: str, main: str, deps: set[str]):
-        super().__init__(rule_name="python_library", name=name, srcs=set(), deps=deps, main=main)
+        super().__init__(rule_name="python_binary", name=name, srcs=set(), deps=deps, main=main)
         return
 
 

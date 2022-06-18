@@ -8,7 +8,14 @@ from domain.targets.python_target import PythonBinary, PythonLibrary, Python, Py
 from domain.targets.utils import is_ast_node_python_build_rule
 
 
-def from_ast_node_to_python_target(node: ast.Call, build_target_path: PlzTarget) -> Python:
+def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python:
+    """
+
+    :param node:
+    :param build_pkg_dir: Relative path from reporoot
+    :return: Domain repr of Python Target
+    """
+
     if not isinstance(node, ast.Call):
         raise TypeError(f"AST node is of type {type(node).__name__}; expected {type(ast.Call()).__name__}")
 
@@ -28,6 +35,7 @@ def from_ast_node_to_python_target(node: ast.Call, build_target_path: PlzTarget)
 
     match node.func.id:
         case PythonTargetTypes.PYTHON_LIBRARY.value:
+            # Extract target name.
             if len(node.args) > 0:
                 name_as_arg = node.args[0]
                 if isinstance(name_as_arg, ast.Constant):
@@ -36,7 +44,12 @@ def from_ast_node_to_python_target(node: ast.Call, build_target_path: PlzTarget)
                 if name is None and keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
                     name = keyword.value.value
 
-                elif keyword.arg == "srcs" and isinstance(keyword.value, ast.List):
+            if name is None:
+                raise ValueError(f"could not compute name of target in {build_pkg_dir}")
+
+            # Extract srcs and deps.
+            for keyword in node.keywords:
+                if keyword.arg == "srcs" and isinstance(keyword.value, ast.List):
                     for elt in keyword.value.elts:
                         if not isinstance(elt, ast.Constant):
                             continue
@@ -44,6 +57,7 @@ def from_ast_node_to_python_target(node: ast.Call, build_target_path: PlzTarget)
                         srcs.add(elt.value)
 
                 elif keyword.arg == "srcs":
+                    build_target_path = PlzTarget(f"//{build_pkg_dir}:{name}")
                     srcs |= set(get_print(str(build_target_path), "srcs"))
 
                 elif keyword.arg == "deps" and isinstance(keyword.value, ast.List):
@@ -56,6 +70,7 @@ def from_ast_node_to_python_target(node: ast.Call, build_target_path: PlzTarget)
             return PythonLibrary(name=name, deps=deps, srcs=srcs)
 
         case PythonTargetTypes.PYTHON_TEST.value:
+            # Extract target name.
             if len(node.args) > 0:
                 name_as_arg = node.args[0]
                 if isinstance(name_as_arg, ast.Constant):
@@ -64,7 +79,12 @@ def from_ast_node_to_python_target(node: ast.Call, build_target_path: PlzTarget)
                 if name is None and keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
                     name = keyword.value.value
 
-                elif keyword.arg == "srcs" and isinstance(keyword.value, ast.List):
+            if name is None:
+                raise ValueError(f"could not compute name of target in {build_pkg_dir}")
+
+            # Extract srcs and deps.
+            for keyword in node.keywords:
+                if keyword.arg == "srcs" and isinstance(keyword.value, ast.List):
                     for elt in keyword.value.elts:
                         if not isinstance(elt, ast.Constant):
                             continue
@@ -72,9 +92,8 @@ def from_ast_node_to_python_target(node: ast.Call, build_target_path: PlzTarget)
                         srcs.add(elt.value)
 
                 elif keyword.arg == "srcs":
-                    # TODO: query //path/to:_test#lib, where input is //path/to:test
+                    build_target_path = PlzTarget(f"//{build_pkg_dir}:{name}")
                     srcs |= set(get_print(build_target_path.with_tag("lib"), "srcs"))
-                    pass
 
                 elif keyword.arg == "deps" and isinstance(keyword.value, ast.List):
                     for elt in keyword.value.elts:
@@ -114,7 +133,10 @@ def from_ast_node_to_python_target(node: ast.Call, build_target_path: PlzTarget)
 
 
 # noinspection PyTypeChecker
-def from_ast_module_to_python_build_rule_occurrences(module: ast.Module, build_target: PlzTarget) -> dict[ast.Call, Python]:
+def from_ast_module_to_python_build_rule_occurrences(
+        module: ast.Module,
+        build_target: PlzTarget,
+) -> dict[ast.Call, Python]:
     build_rule_ast_call_to_domain_target: dict[ast.Call, Python] = {}
     for ast_call in filter(lambda x: is_ast_node_python_build_rule(x), ast.walk(module)):
         if (target := from_ast_node_to_python_target(ast_call, build_target)) is None:

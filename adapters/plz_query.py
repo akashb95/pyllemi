@@ -46,8 +46,7 @@ def get_print(target: str, field) -> list[str]:
 def get_python_moduledir() -> str:
     get_config_output = get_config("python.moduledir")
     assert len(get_config_output) == 1, (
-        "expected to only find 1 python moduledir,"
-        f"but found {len(get_config_output)}: {get_config_output}"
+        "expected to only find 1 python moduledir," f"but found {len(get_config_output)}: {get_config_output}"
     )
     return get_config_output[0]
 
@@ -61,8 +60,8 @@ def get_build_file_names() -> list[str]:
 
 @cache
 def get_plz_build_graph(
-        pkg_dir: Optional[str] = None,
-        args: Optional[list[str]] = None,
+    pkg_dir: Optional[str] = None,
+    args: Optional[list[str]] = None,
 ) -> dict[str, Any]:
     cmd = ["plz", "query", "graph"]
     if pkg_dir is not None:
@@ -157,8 +156,8 @@ def get_third_party_module_targets() -> list[str]:
 
 
 def get_all_targets(
-        plz_pkg_dirs: list[str],
-        query_args: Optional[list[str]] = None,
+    plz_pkg_dirs: list[str],
+    query_args: Optional[list[str]] = None,
 ) -> list[str]:
     query_args = [] if query_args is None else query_args
 

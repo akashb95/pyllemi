@@ -28,9 +28,7 @@ def _scrape_standard_libs(py_version: Optional[str] = None, top_level_only: bool
 
 
 @lru_cache(maxsize=1)
-def get_stdlib_module_names(
-    version: Optional[tuple[int, int]] = None
-) -> Union[frozenset[str], set[str]]:
+def get_stdlib_module_names(version: Optional[tuple[int, int]] = None) -> Union[frozenset[str], set[str]]:
     py_version = version
     if version is None:
         py_version = sys.version_info
@@ -41,13 +39,9 @@ def get_stdlib_module_names(
 
     # Otherwise, use generated set of builtins.
     try:
-        stdlib_pkg = importlib.import_module(
-            f"imports.stdlib.{py_version.major}_{py_version.minor}"
-        )
+        stdlib_pkg = importlib.import_module(f"imports.stdlib.{py_version.major}_{py_version.minor}")
     except ModuleNotFoundError:
-        raise ValueError(
-            f"could not fetch builtin modules for Python version {'.'.join(py_version)}"
-        )
+        raise ValueError(f"could not fetch builtin modules for Python version {'.'.join(py_version)}")
 
     return getattr(stdlib_pkg, "MODULE_NAMES")
 

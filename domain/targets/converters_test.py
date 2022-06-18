@@ -10,24 +10,24 @@ class ConvertersTest(TestCase):
     def test_converts_python_library(self):
         input_ast_node = ast.parse("python_library(name='lib', srcs=['input.py'], deps=[':dep'])")
         self.assertEqual(
-            PythonLibrary(name='lib', srcs={'input.py'}, deps={':dep'}),
-            from_ast_node_to_python_target(input_ast_node.body[0].value, PlzTarget("//path/to:lib")),
+            PythonLibrary(name="lib", srcs={"input.py"}, deps={":dep"}),
+            from_ast_node_to_python_target(input_ast_node.body[0].value, "path/to/lib"),
         )
         return
 
     def test_converts_python_test(self):
         input_ast_node = ast.parse("python_test(name='test', srcs=['lib_test.py'], deps=[':lib'])")
         self.assertEqual(
-            PythonTest(name='test', srcs={'lib_test.py'}, deps={':lib'}),
-            from_ast_node_to_python_target(input_ast_node.body[0].value, PlzTarget("//path/to:test")),
+            PythonTest(name="test", srcs={"lib_test.py"}, deps={":lib"}),
+            from_ast_node_to_python_target(input_ast_node.body[0].value, "//path/to/test"),
         )
         return
 
     def test_converts_python_binary(self):
         input_ast_node = ast.parse("python_binary(name='bin', main='main.py', deps=[':dep'])")
         self.assertEqual(
-            PythonBinary(name='bin', main='main.py', deps={':dep'}),
-            from_ast_node_to_python_target(input_ast_node.body[0].value, PlzTarget("//path/to:bin")),
+            PythonBinary(name="bin", main="main.py", deps={":dep"}),
+            from_ast_node_to_python_target(input_ast_node.body[0].value, "//path/to/bin"),
         )
         return
 
@@ -36,10 +36,9 @@ class ConvertersTest(TestCase):
         with self.subTest("python_library"):
             input_ast_node = ast.parse("python_library(name='target', srcs=glob(['*.py'], exclude=['*_test.py']))")
             mock_plz_query_print.return_value = ["__init__.py", "module.py"]
-            # TODO
             self.assertEqual(
                 PythonLibrary(name="target", srcs={"__init__.py", "module.py"}, deps=set()),
-                from_ast_node_to_python_target(input_ast_node.body[0].value, PlzTarget("//path/to:target")),
+                from_ast_node_to_python_target(input_ast_node.body[0].value, "path/to"),
             )
             mock_plz_query_print.assert_called_once_with("//path/to:target", "srcs")
 
@@ -50,7 +49,7 @@ class ConvertersTest(TestCase):
             mock_plz_query_print.return_value = ["module_test.py"]
             self.assertEqual(
                 PythonTest(name="test", srcs={"module_test.py"}, deps=set()),
-                from_ast_node_to_python_target(input_ast_node.body[0].value, PlzTarget("//path/to:test")),
+                from_ast_node_to_python_target(input_ast_node.body[0].value, "path/to"),
             )
             mock_plz_query_print.assert_called_once_with("//path/to:_test#lib", "srcs")
         return
