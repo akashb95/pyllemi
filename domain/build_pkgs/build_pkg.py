@@ -15,7 +15,7 @@ class BUILDPkg:
     """
     This class is used to manage BUILD targets in the given BUILD package.
     Where necessary, it will create new packages in the given path, and add new targets to it.
-    Where appropriate, it will modify existing BUILD targets.
+    It provides a method to perform dependency resolution by means of an injected callable.
 
     Usage::
 
