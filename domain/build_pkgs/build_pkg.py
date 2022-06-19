@@ -3,12 +3,12 @@ import logging
 import os.path
 from typing import Callable, Collection, Optional
 
+from adapters.os.new_build_pkg_creator import NewBuildPkgCreator
 from common.logger.logger import setup_logger
 from domain.build_files.build_file import BUILDFile
-from adapters.os.new_build_pkg_creator import NewBuildPkgCreator
+from domain.targets import converters as target_converters
 from domain.targets.plz_target import PlzTarget
 from domain.targets.python_target import PythonLibrary, PythonTest
-from domain.targets import converters as target_converters
 
 
 class BUILDPkg:

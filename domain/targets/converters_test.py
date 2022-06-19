@@ -2,7 +2,6 @@ import ast
 from unittest import TestCase, mock
 
 from domain.targets.converters import from_ast_node_to_python_target
-from domain.targets.plz_target import PlzTarget
 from domain.targets.python_target import PythonLibrary, PythonTest, PythonBinary
 
 
