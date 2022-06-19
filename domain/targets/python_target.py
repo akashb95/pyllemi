@@ -59,14 +59,14 @@ class Target:
             return None
         return getattr(self.kwargs, item, None)
 
-    #
     def __setitem__(self, key: str, value: set[str]) -> None:
-        if not hasattr(self, key):
-            raise AttributeError(f"{self.__name__} has no attribute '{key}'")
+        if self.kwargs[key] is None:
+            raise AttributeError(f"{self.__class__.__name__} has no attribute '{key}'")
 
         if key not in self.modifiable_attributes:
-            raise ValueError(f"'{key}' cannot be modified for a {self.__name__} object")
-        return setattr(self.kwargs, key, value)
+            raise ValueError(f"'{key}' cannot be modified for a {self.__class__.__name__} object")
+        self.kwargs[key] = value
+        return
 
 
 class Python(Target):

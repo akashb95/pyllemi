@@ -8,11 +8,18 @@ python_library(
     ),
     deps = [
         "//common/logger",
+        "//domain/build_files",
+        "//adapters/os",
+        "//domain/targets",
     ],
 )
 
-# python_test(
-#     name = "build_pkg_test",
-#     srcs = glob(["*_test.py"]),
-#     deps = [":build_pkg"],
-# )
+python_test(
+    name = "build_pkgs_test",
+    srcs = glob(["*_test.py"]),
+    deps = [
+        ":build_pkgs",
+        "//domain/targets",
+        "//utils",
+    ],
+)

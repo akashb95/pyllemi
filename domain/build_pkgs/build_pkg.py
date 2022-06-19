@@ -1,7 +1,7 @@
 import ast
 import logging
 import os.path
-from typing import Callable, Optional
+from typing import Callable, Collection, Optional
 
 from common.logger.logger import setup_logger
 from domain.build_files.build_file import BUILDFile
@@ -20,12 +20,11 @@ class BUILDPkg:
     Usage::
 
         build_pkg = BUILDPkg()
-        build_pkg.initialise()
         build_pkg.resolve_deps_for_target(domain_targets.resolver.resolve)
 
     """
 
-    def __init__(self, dir_path_relative_to_reporoot: str, build_file_names: list[str]):
+    def __init__(self, dir_path_relative_to_reporoot: str, build_file_names: Collection[str]):
         self._logger = setup_logger(__file__, logging.INFO)
         self._uncommitted_changes: bool = False
         self._dir_path: str = dir_path_relative_to_reporoot
@@ -35,13 +34,15 @@ class BUILDPkg:
 
         self._new_pkg_creator = NewBuildPkgCreator(self._dir_path, set(build_file_names))
         self._this_pkg_build_file_name: str = ""
+
+        self._initialise()
         return
 
-    def initialise(self):
+    def _initialise(self):
         # If this is a directory with no BUILD file, create one and write to FS.
-        # This must be done before dependency resolution in case multiple BuildPkg
+        # This must be done before dependency resolution in case multiple BUILDPkg
         # instances are being orchestrated # at the same time by the caller, and
-        # one instance depends on another.
+        # the instances have dependencies between them.
         if self._is_new_pkg():
             self._infer_targets_and_add_to_build_file()
             if self._uncommitted_changes:
@@ -52,7 +53,7 @@ class BUILDPkg:
         self._parse_existing_python_targets()
         # If there are no existing Python targets declared, try and infer them,
         # and add them to the build file.
-        if self._build_file.has_modifiable_nodes:
+        if not self._build_file.has_modifiable_nodes:
             self._infer_targets_and_add_to_build_file()
             if self._uncommitted_changes:
                 self.write_to_build_file()
@@ -75,15 +76,16 @@ class BUILDPkg:
 
             as_python_target["deps"] = resolved_deps
             self._build_file.register_modified_build_rule_to_python_target(node, as_python_target)
-
+            self._uncommitted_changes = True
         return
 
     def _is_new_pkg(self) -> bool:
         for build_file_name in self._build_file_names:
             if os.path.isfile(path := os.path.join(self._dir_path, build_file_name)):
                 self._this_pkg_build_file_name = path
-                self._logger.info("Found existing BUILD file: ")
+                self._logger.debug(f"Found existing BUILD file: {path}")
                 return False
+
         for build_file_name in self._build_file_names:
             if os.path.exists(path := os.path.join(self._dir_path, build_file_name)) or os.path.exists(
                 os.path.join(self._dir_path, build_file_name.lower())
@@ -99,7 +101,7 @@ class BUILDPkg:
         python_test: Optional[PythonTest]
         python_library, python_test = self._new_pkg_creator.infer_py_targets()
 
-        if python_library is None or python_test is None:
+        if python_library is None and python_test is None:
             return
 
         if python_library is not None:

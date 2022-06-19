@@ -9,7 +9,8 @@ class MockPythonLibraryTestCase(TestCase):
         self.test_dir = f"test_pkg_{uuid.uuid4()}"
         self.plzconfig_file = os.path.join(self.test_dir, ".plzconfig")
         self.subpackage_dir = os.path.join(self.test_dir, "test_subpackage")
-        self.subpackage_build_file = os.path.join(self.test_dir, "BUILD")
+        self.package_build_file = os.path.join(self.test_dir, "BUILD")
+        self.subpackage_build_file = os.path.join(self.subpackage_dir, "BUILD")
         self.package_module = os.path.join(self.test_dir, "test_module_0.py")
         self.subpackage_module = os.path.join(self.subpackage_dir, "test_module_1.py")
 
@@ -24,8 +25,11 @@ class MockPythonLibraryTestCase(TestCase):
         with open(self.plzconfig_file, "w") as f:
             f.write(f"# TEST: {self.test_dir}")
 
-        with open(self.subpackage_build_file, "w") as f:
+        with open(self.package_build_file, "w") as f:
             f.write(f"# TEST: {self.test_dir}")
+
+        with open(self.subpackage_build_file, "w") as f:
+            f.write("""python_test(name="test_subpackage", srcs=["test_module_0.py", "test_module_1.py"])""")
 
         with open(self.package_module, "w") as f:
             f.write("x = 5")
@@ -39,6 +43,7 @@ class MockPythonLibraryTestCase(TestCase):
             self.package_module,
             self.subpackage_module,
             self.plzconfig_file,
+            self.package_build_file,
             self.subpackage_build_file,
         ]
         # The order matters - cannot delete a dir that is not empty.
