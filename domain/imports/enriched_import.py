@@ -1,8 +1,7 @@
 import os
-from typing import Optional
-
 from dataclasses import dataclass
 from enum import IntEnum, unique
+from typing import Optional
 
 
 @unique

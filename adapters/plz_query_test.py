@@ -1,6 +1,7 @@
 import functools
 import gc
 import os
+import subprocess
 from unittest import TestCase, mock
 
 from adapters.plz_query import (
@@ -9,6 +10,7 @@ from adapters.plz_query import (
     get_config,
     get_third_party_module_targets,
     get_plz_build_graph,
+    get_print,
     get_reporoot,
     get_whatinputs,
     WhatInputsResult,
@@ -35,9 +37,9 @@ class TestGetThirdPartyModules(TestCase):
     @mock.patch("adapters.plz_query.get_all_targets")
     @mock.patch("adapters.plz_query.get_config")
     def test_gets_third_party_modules(
-            self,
-            mock_get_config,
-            mock_get_all_targets,
+        self,
+        mock_get_config,
+        mock_get_all_targets,
     ):
         mock_get_config.return_value = ["third_party.python"]
         mock_get_all_targets.return_value = ["//third_party/python:a", "//third_party/python:b"]
@@ -59,8 +61,8 @@ class TestGetThirdPartyModules(TestCase):
 
     @mock.patch("adapters.plz_query.get_config")
     def test_errors_when_get_config_returns_unexpected_response(
-            self,
-            mock_get_config,
+        self,
+        mock_get_config,
     ):
         mock_get_config.return_value = []
         with self.assertRaises(AssertionError):
@@ -225,10 +227,7 @@ class TestGetBuildFileNames(TestCase):
     def setUp(self) -> None:
         # Clear all cache so that @lru_cache calls do not interfere with mocks.
         gc.collect()
-        wrappers = [
-            a for a in gc.get_objects()
-            if isinstance(a, functools._lru_cache_wrapper)
-        ]
+        wrappers = [a for a in gc.get_objects() if isinstance(a, functools._lru_cache_wrapper)]
 
         for wrapper in wrappers:
             wrapper.cache_clear()
@@ -251,4 +250,20 @@ class TestGetBuildFileNames(TestCase):
         mock_get_config.return_value = ["BUILD.plz", "BUILD"]
         self.assertCountEqual(["BUILD.plz", "BUILD"], get_build_file_names())
         mock_get_config.assert_called_once_with("parse.buildfilename")
+        return
+
+
+class TestPrint(TestCase):
+    @mock.patch("adapters.plz_query.subprocess.Popen")
+    def test_print(self, mock_subprocess_popen):
+        process_mock = mock.Mock()
+        stdout_mock_return_value = [b"__init__.py", b"module.py"]
+        process_mock.configure_mock(**{"stdout": stdout_mock_return_value, "returncode": None})
+        mock_subprocess_popen.return_value = process_mock
+
+        self.assertEqual(["__init__.py", "module.py"], get_print("//path/to:target", "srcs"))
+        mock_subprocess_popen.assert_called_once_with(
+            ["plz", "query", "print", "//path/to:target", "-f", "srcs"],
+            stdout=subprocess.PIPE,
+        )
         return

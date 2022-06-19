@@ -28,9 +28,7 @@ class ToEnrichedImports:
         # TODO: add support for __import__ function calls
 
         else:
-            raise TypeError(
-                f"can only transform nodes of type Import and ImportFrom; got {type(node).__name__}"
-            )
+            raise TypeError(f"can only transform nodes of type Import and ImportFrom; got {type(node).__name__}")
 
     def convert_all(self, nodes: Collection[IMPORT_NODE_TYPE], *, pyfile_path: str = "") -> list[EnrichedImport]:
         imports: list[EnrichedImport] = []
@@ -101,9 +99,9 @@ class ToEnrichedImports:
         return imports
 
     def _relative_import_from_node_to_absolute_import_from_node(
-            self,
-            node: ast.ImportFrom,
-            pyfile_path: str,
+        self,
+        node: ast.ImportFrom,
+        pyfile_path: str,
     ) -> list[ast.ImportFrom]:
         relative_import_dir = os.path.abspath(
             os.path.join(
@@ -118,10 +116,8 @@ class ToEnrichedImports:
             # ensure level isn't so high that the relative import dir is outside the project root
             raise ImportError("attempted relative import beyond top-level package")
 
-        relative_import_pkg = (  # noqa: F841
-            relative_import_dir
-                .removeprefix(self.abs_path_to_project_root)
-                .replace(os.path.sep, ".")
+        relative_import_pkg = relative_import_dir.removeprefix(self.abs_path_to_project_root).replace(  # noqa: F841
+            os.path.sep, "."
         )
 
         if node.module is None:

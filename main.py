@@ -41,8 +41,11 @@ def run(path_to_pyfile: str):
     for source in plz_target_resolver.custom_module_sources_without_targets:
         LOGGER.error(f"Import does not have a plz target: {source}")
 
-    LOGGER.info(targets_as_deps(
-        list(plz_target_resolver.third_party_module_imports) + list(plz_target_resolver.custom_module_targets)))
+    LOGGER.info(
+        targets_as_deps(
+            list(plz_target_resolver.third_party_module_imports) + list(plz_target_resolver.custom_module_targets)
+        )
+    )
 
     return
 

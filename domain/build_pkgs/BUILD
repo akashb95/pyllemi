@@ -1,23 +1,25 @@
 package(default_visibility = ["PUBLIC"])
 
 python_library(
-    name = "targets",
+    name = "build_pkgs",
     srcs = glob(
         ["*.py"],
         exclude = ["_test.py"],
     ),
     deps = [
-        "//adapters",
         "//common/logger",
-        "//converters",
-        "//domain/ast",
+        "//domain/build_files",
+        "//adapters/os",
+        "//domain/targets",
     ],
 )
 
 python_test(
-    name = "targets_test",
+    name = "build_pkgs_test",
     srcs = glob(["*_test.py"]),
     deps = [
-        ":targets",
+        ":build_pkgs",
+        "//domain/targets",
+        "//utils",
     ],
 )

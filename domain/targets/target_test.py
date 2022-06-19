@@ -1,7 +1,7 @@
 import collections
 import unittest
 
-from domain.targets.target import PythonTargetTypes, Target
+from domain.targets.python_target import PythonTargetTypes, Target
 
 
 class TestTarget(unittest.TestCase):

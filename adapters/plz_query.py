@@ -1,8 +1,7 @@
-import os
 import json
+import os
 import re
 import subprocess
-import sys
 from collections import namedtuple
 from functools import cache, lru_cache
 from logging import INFO
@@ -29,12 +28,25 @@ def get_config(specifier: str) -> list[str]:
     return _convert_list_of_bytes_to_list_of_strs(proc.stdout)
 
 
+@cache
+def get_print(target: str, field) -> list[str]:
+    cmd = ["plz", "query", "print", target, "-f", field]
+
+    LOGGER.debug(f"Getting field '{field}' for {target}")
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    if not _is_success_return_code(proc.returncode):
+        LOGGER.error(f"Got a non-zero return code while trying to fetch plz config for {target}")
+        raise RuntimeError(proc.stderr)
+
+    return _convert_list_of_bytes_to_list_of_strs(proc.stdout)
+
+
 @lru_cache(1)
 def get_python_moduledir() -> str:
     get_config_output = get_config("python.moduledir")
     assert len(get_config_output) == 1, (
-        "expected to only find 1 python moduledir,"
-        f"but found {len(get_config_output)}: {get_config_output}"
+        "expected to only find 1 python moduledir," f"but found {len(get_config_output)}: {get_config_output}"
     )
     return get_config_output[0]
 
@@ -48,8 +60,8 @@ def get_build_file_names() -> list[str]:
 
 @cache
 def get_plz_build_graph(
-        pkg_dir: Optional[str] = None,
-        args: Optional[list[str]] = None,
+    pkg_dir: Optional[str] = None,
+    args: Optional[list[str]] = None,
 ) -> dict[str, Any]:
     cmd = ["plz", "query", "graph"]
     if pkg_dir is not None:
@@ -144,8 +156,8 @@ def get_third_party_module_targets() -> list[str]:
 
 
 def get_all_targets(
-        plz_pkg_dirs: list[str],
-        query_args: Optional[list[str]] = None,
+    plz_pkg_dirs: list[str],
+    query_args: Optional[list[str]] = None,
 ) -> list[str]:
     query_args = [] if query_args is None else query_args
 

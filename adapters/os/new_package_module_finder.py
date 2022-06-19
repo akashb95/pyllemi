@@ -7,7 +7,7 @@ from common.logger.logger import setup_logger
 
 
 class NewPackageModuleFinder:
-    __default_build_file_names__ = {"BUILD", "BUILD.plz"}
+    default_build_file_names = frozenset({"BUILD", "BUILD.plz"})
 
     def __init__(self, path_to_pkg: str, build_file_names: Optional[set[str]] = None):
         self._logger = setup_logger(__file__, INFO)
@@ -16,13 +16,9 @@ class NewPackageModuleFinder:
 
         are_build_file_names_set = build_file_names is None or len(build_file_names) == 0
         if are_build_file_names_set:
-            self._logger.warning(f"BUILD file names not provided, using defaults: {self.__default_build_file_names__}")
+            self._logger.warning(f"BUILD file names not provided, using defaults: {self.default_build_file_names}")
 
-        self._build_file_names = (
-            self.__default_build_file_names__
-            if are_build_file_names_set
-            else build_file_names
-        )
+        self._build_file_names = self.default_build_file_names if are_build_file_names_set else build_file_names
 
         self._test_targets: set[str] = set()
         self._library_targets: set[str] = set()
@@ -34,7 +30,8 @@ class NewPackageModuleFinder:
 
         # Find all files in pkg dir.
         pkg_dir_files = {
-            path for path in os.listdir(self._path_to_pkg)
+            path
+            for path in os.listdir(self._path_to_pkg)
             # filter out sub-directories
             if os.path.isfile(os.path.join(self._path_to_pkg, path))
         }
@@ -44,7 +41,7 @@ class NewPackageModuleFinder:
 
         # Find lib srcs
         non_test_src_files = pkg_dir_files - test_src_files
-        lib_src_files = set(filter(lambda fn: re.match(r'.+\.pyi?$', fn), non_test_src_files))
+        lib_src_files = set(filter(lambda fn: re.match(r".+\.pyi?$", fn), non_test_src_files))
 
         self._logger.info(
             f"In {self._path_to_pkg}, found {len(lib_src_files)} library sources "

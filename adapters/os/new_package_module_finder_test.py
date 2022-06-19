@@ -24,6 +24,9 @@ class TestNewPackageModuleFinder(MockPythonLibraryWithNewBuildPkgTestCase):
         return
 
     def test_finds_lib_srcs(self):
+        # Setup - delete existing BUILD file so that it is treated as a new BUILD Pkg dir.
+        os.unlink(self.subpackage_build_file)
+
         new_package_module_finder = NewPackageModuleFinder(self.subpackage_dir)
         new_package_module_finder.find()
 
