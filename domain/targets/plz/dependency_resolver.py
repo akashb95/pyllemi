@@ -68,6 +68,11 @@ class DependencyResolver:
 
         self._logger.debug(f"Found import of a custom lib module: {enriched_import.import_}")
 
+        # TODO(#15): implement batching so that all whatinputs queries can be done in one fell swoop per input plz
+        #  target.
+
+        # TODO(#4): add ability to 'guess' target based on import path -- if it is not a target,
+        #  then revert to whatinputs.
         if (whatinputs_input := to_whatinputs_input(enriched_import)) is not None:
             whatinputs_result = get_whatinputs(whatinputs_input)
             if len(whatinputs_result.targetless_paths) > 0:
