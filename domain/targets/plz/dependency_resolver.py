@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Optional, Iterable
+from typing import Collection, Optional
 
 from adapters.plz_query import get_whatinputs
 from common.logger.logger import setup_logger
@@ -20,7 +20,7 @@ class DependencyResolver:
         *,
         python_moduledir: str,
         enricher: ToEnrichedImports,
-        std_lib_modules: Iterable[str],
+        std_lib_modules: Collection[str],
         available_third_party_module_targets: set[str],
         nodes_collator: NodesCollator,
     ):
