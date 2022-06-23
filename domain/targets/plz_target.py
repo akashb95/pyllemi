@@ -2,7 +2,7 @@ import re
 
 
 class PlzTarget:
-    __absolute_target_path_pattern__ = re.compile(r"^//(.*):(\w*)$")
+    __absolute_target_path_pattern__ = re.compile(r"^//(.*):(\w+)$")
     __simple_absolute_target_path_pattern__ = re.compile("^//(.+)$")
     __relative_target_path_pattern__ = re.compile(r"^:(\w+)")
 

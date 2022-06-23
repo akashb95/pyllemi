@@ -8,7 +8,7 @@ from domain.targets.plz.dependency_resolver import DependencyResolver
 from domain.targets.plz_target import PlzTarget
 
 
-class MyTestCase(TestCase):
+class TestDependencyResolver(TestCase):
     def setUp(self) -> None:
         self.mock_nodes_collator = mock.MagicMock()
         self.mock_enricher = mock.MagicMock()
@@ -34,7 +34,7 @@ class MyTestCase(TestCase):
         mock_file_open.assert_called_once_with("path/to/x.py", "r")
         self.mock_nodes_collator.collate.assert_called_once_with(code="import colorama", path="path/to/x.py")
         self.mock_enricher.convert.assert_called_once_with(mock_import_node)
-        self.assertEqual({"//third_party/python:colorama"}, deps)
+        self.assertEqual({PlzTarget("//third_party/python:colorama")}, deps)
 
         return
 
@@ -65,7 +65,7 @@ class MyTestCase(TestCase):
         self.mock_nodes_collator.collate.assert_called_once_with(code="import custom.module", path="path/to/y.py")
         self.mock_enricher.convert.assert_called_once_with(mock_import_node)
         mock_get_whatinputs.assert_called_once()
-        self.assertEqual({"//custom:target"}, deps)
+        self.assertEqual({PlzTarget("//custom:target")}, deps)
 
         return
 
@@ -99,7 +99,7 @@ class MyTestCase(TestCase):
         )
         self.mock_enricher.convert.assert_called_once_with(mock_import_node)
         mock_get_whatinputs.assert_called_once()
-        self.assertEqual({"//custom:target"}, deps)
+        self.assertEqual({PlzTarget("//custom:target")}, deps)
 
         return
 

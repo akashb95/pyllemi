@@ -31,6 +31,12 @@ class TestPlzTarget(TestCase):
         self.assertEqual("to", plz_target.target_name)
         return
 
+    def test_with_relative_target_path_pattern(self):
+        plz_target = PlzTarget("//:target")
+        self.assertEqual("", plz_target.build_pkg_dir)
+        self.assertEqual("target", plz_target.target_name)
+        return
+
     def test_with_tag(self):
         plz_target = PlzTarget("//path/to:target")
         self.assertEqual(
