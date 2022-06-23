@@ -41,7 +41,7 @@ class BUILDPkg:
     def _initialise(self):
         # If this is a directory with no BUILD file, create one and write to FS.
         # This must be done before dependency resolution in case multiple BUILDPkg
-        # instances are being orchestrated # at the same time by the caller, and
+        # instances are being orchestrated at the same time by the caller, and
         # the instances have dependencies between them.
         if self._is_new_pkg():
             self._infer_targets_and_add_to_build_file()
@@ -52,29 +52,34 @@ class BUILDPkg:
         # load existing Python target declarations into domain representations.
         self._parse_existing_python_targets()
         # If there are no existing Python targets declared, try and infer them,
-        # and add them to the build file.
+        # and write them to the build file.
         if not self._build_file.has_modifiable_nodes:
             self._infer_targets_and_add_to_build_file()
             if self._uncommitted_changes:
                 self.write_to_build_file()
         return
 
-    def resolve_deps_for_targets(self, deps_resolver_fn: Callable[[PlzTarget, set[str]], set[str]]) -> None:
+    def resolve_deps_for_targets(self, deps_resolver_fn: Callable[[PlzTarget, set[str]], set[PlzTarget]]) -> None:
         if not self._build_file.has_modifiable_nodes:
             return
 
         for node in self._build_file.get_existing_ast_python_build_rules():
             as_python_target = target_converters.from_ast_node_to_python_target(node, self._dir_path)
+            self._logger.debug(
+                f"Found target in {os.path.join(self._dir_path, self._this_pkg_build_file_name)}: "
+                f"{as_python_target}"
+            )
+
             resolved_deps = deps_resolver_fn(
-                PlzTarget(f"//{self._dir_path}:{as_python_target}"),
+                PlzTarget(f"//{self._dir_path}:{as_python_target['name']}"),
                 as_python_target["srcs"],
             )
 
-            if as_python_target["deps"] == resolved_deps:
+            if set(map(PlzTarget, as_python_target["deps"])) == resolved_deps:
                 # No need to update dependencies if there is no change
                 continue
 
-            as_python_target["deps"] = resolved_deps
+            as_python_target["deps"] = set(map(str, resolved_deps))
             self._build_file.register_modified_build_rule_to_python_target(node, as_python_target)
             self._uncommitted_changes = True
         return
@@ -126,7 +131,14 @@ class BUILDPkg:
         self._build_file = BUILDFile(contents_as_ast)
         return
 
+    def __str__(self):
+        return str(self._build_file)
+
     def write_to_build_file(self) -> str:
+        if not self._uncommitted_changes:
+            self._logger.debug(f"no changes made to {self._this_pkg_build_file_name}")
+            return self._this_pkg_build_file_name
+
         dumped_ast = self._build_file.dump_ast()
         with open(self._this_pkg_build_file_name, "w") as build_file:
             build_file.write(dumped_ast)

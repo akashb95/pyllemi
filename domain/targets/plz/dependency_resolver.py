@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import Collection, Optional
 
@@ -24,7 +23,7 @@ class DependencyResolver:
         available_third_party_module_targets: set[str],
         nodes_collator: NodesCollator,
     ):
-        self._logger = setup_logger(__name__, logging.INFO)
+        self._logger = setup_logger(__name__)
 
         self.python_moduledir = python_moduledir
         self.std_lib_modules = std_lib_modules
@@ -34,12 +33,15 @@ class DependencyResolver:
         self.collator = nodes_collator
         return
 
-    def resolve_deps_for_srcs(self, srcs_plz_target: PlzTarget, srcs: set[str]) -> set[str]:
+    def resolve_deps_for_srcs(self, srcs_plz_target: PlzTarget, srcs: set[str]) -> set[PlzTarget]:
         if len(srcs) == 0:
             return set()
 
-        import_targets = set()
+        import_targets: set[PlzTarget] = set()
         for src in srcs:
+            self._logger.debug(
+                f"Starting to resolve dependencies for {os.path.join(srcs_plz_target.build_pkg_dir, src)}"
+            )
             with open(relative_path_to_src := os.path.join(srcs_plz_target.build_pkg_dir, src), "r") as pyfile:
                 code = pyfile.read()
             for import_node in self.collator.collate(code=code, path=relative_path_to_src):
@@ -51,10 +53,10 @@ class DependencyResolver:
                         import_targets |= deps
 
         # Remove "self-dependency" cycles.
-        import_targets.discard(str(srcs_plz_target))
+        import_targets.discard(srcs_plz_target)
         return import_targets
 
-    def _resolve_dependencies_for_enriched_import(self, enriched_import: EnrichedImport) -> Optional[set[str]]:
+    def _resolve_dependencies_for_enriched_import(self, enriched_import: EnrichedImport) -> Optional[set[PlzTarget]]:
         # Filter out stdlib modules.
         top_level_module_name = get_top_level_module_name(enriched_import.import_)
         if top_level_module_name in self.std_lib_modules:
@@ -64,7 +66,7 @@ class DependencyResolver:
         # Resolve 3rd-party library targets.
         possible_third_party_module_target = f"//{self.python_moduledir}:{top_level_module_name}".replace(".", "/")
         if possible_third_party_module_target in self.available_third_party_module_targets:
-            return {possible_third_party_module_target}
+            return {PlzTarget(possible_third_party_module_target)}
 
         self._logger.debug(f"Found import of a custom lib module: {enriched_import.import_}")
 
@@ -79,6 +81,6 @@ class DependencyResolver:
                 self._logger.error(
                     f"Could not find targets for imports: {', '.join(whatinputs_result.targetless_paths)}"
                 )
-            return whatinputs_result.plz_targets
+            return set(map(PlzTarget, whatinputs_result.plz_targets))
 
         return None
