@@ -2,8 +2,8 @@ import re
 
 
 class PlzTarget:
-    __absolute_target_path_pattern__ = re.compile(r"^//(.*):(\w+)$")
-    __simple_absolute_target_path_pattern__ = re.compile("^//(.+)$")
+    __absolute_target_path_pattern__ = re.compile(r"^//([\w/]*):(\w+)$")
+    __simple_absolute_target_path_pattern__ = re.compile(r"^//([\w/]+)$")
     __relative_target_path_pattern__ = re.compile(r"^:(\w+)")
 
     def __init__(self, target: str):
@@ -32,7 +32,7 @@ class PlzTarget:
             self.target_name: str = relative_target_match.group(1)
 
         else:
-            raise ValueError(f"{target} does not match the format of a canonical BUILD target path")
+            raise ValueError(f"{target} does not match the format of a BUILD target path")
 
     def __eq__(self, other: "PlzTarget") -> bool:
         return self.canonicalise() == other.canonicalise()

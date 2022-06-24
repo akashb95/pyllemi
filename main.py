@@ -43,8 +43,8 @@ def run(build_pkg_dir_paths: list[str]):
 
     for build_pkg_dir in build_pkg_dirs:
         build_pkg_dir.resolve_deps_for_targets(dependency_resolver.resolve_deps_for_srcs)
-        print(build_pkg_dir)
-        # TODO: trial by fire... RUN THE DAMN THING
+        LOGGER.info(build_pkg_dir)
+        # build_pkg_dir.write_to_build_file()
     return
 
 
@@ -62,11 +62,10 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", "-v", action="count", default=0)
 
     args = parser.parse_args()
-    print(log_level := max(0, logging.WARNING - (10 * args.verbose)))
-    os.environ["PYLLEMI_LOG_LEVEL"] = str(log_level)
+    os.environ["PYLLEMI_LOG_LEVEL"] = str(max(0, logging.WARNING - (10 * args.verbose)))
 
     LOGGER = setup_logger(__file__)
 
     build_pkg_dirs_arg = args.build_pkg_dir
-    LOGGER.info(f"resolving imports for {', '.join(build_pkg_dirs_arg)}; cwd: {os.getcwd()}")
+    LOGGER.debug(f"resolving imports for {', '.join(build_pkg_dirs_arg)}; cwd: {os.getcwd()}")
     run(build_pkg_dirs_arg)

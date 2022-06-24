@@ -2,7 +2,7 @@ python_library(
     name = "pyllemi_lib",
     srcs = glob(
         ["*.py"],
-        exclude = ["*_test.py", "*main.py"],
+        exclude = ["*_test.py", "main.py"],
     ),
     deps = [
         "//adapters",
