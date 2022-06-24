@@ -7,7 +7,7 @@ class TestPlzTarget(TestCase):
     def test_invalid_target_pattern_raises_err(self):
         self.assertRaisesRegex(
             ValueError,
-            "potato does not match the format of a canonical BUILD target path",
+            "potato does not match the format of a BUILD target path",
             PlzTarget,
             "potato",
         )
