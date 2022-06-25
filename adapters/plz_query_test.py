@@ -13,6 +13,7 @@ from adapters.plz_query import (
     get_print,
     get_reporoot,
     get_whatinputs,
+    run_plz_fmt,
     WhatInputsResult,
 )
 
@@ -265,5 +266,30 @@ class TestPrint(TestCase):
         mock_subprocess_popen.assert_called_once_with(
             ["plz", "query", "print", "//path/to:target", "-f", "srcs"],
             stdout=subprocess.PIPE,
+        )
+        return
+
+
+class TestFmt(TestCase):
+    @mock.patch("adapters.plz_query.subprocess.Popen")
+    def test_fmt(self, mock_subprocess_popen):
+        process_mock = mock.Mock()
+        process_mock.configure_mock(**{"returncode": 0})
+        mock_subprocess_popen.return_value = process_mock
+
+        run_plz_fmt(os.path.join("some", "random", "build_pkg"), os.path.join("some", "other", "build_pkg"))
+        mock_subprocess_popen.assert_called_once_with(
+            f"plz fmt -w {os.path.join('some', 'random', 'build_pkg')} {os.path.join('some', 'other', 'build_pkg')}",
+            stdout=subprocess.PIPE,
+            shell=True,
+        )
+
+        return
+
+    def test_raises_err_with_no_args(self):
+        self.assertRaisesRegex(
+            ValueError,
+            ".*expected at least 1 path.*",
+            run_plz_fmt,
         )
         return

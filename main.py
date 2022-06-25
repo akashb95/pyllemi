@@ -8,6 +8,7 @@ from adapters.plz_query import (
     get_third_party_module_targets,
     get_python_moduledir,
     get_reporoot,
+    run_plz_fmt,
 )
 from domain.build_pkgs.build_pkg import BUILDPkg
 from domain.imports.enricher import ToEnrichedImports
@@ -28,9 +29,9 @@ def run(build_pkg_dir_paths: list[str]):
     std_lib_modules: set[str] = get_stdlib_module_names()
     build_file_names: list[str] = get_build_file_names()
 
-    build_pkg_dirs: list[BUILDPkg] = []
+    build_pkgs: list[BUILDPkg] = []
     for build_pkg_dir_path in build_pkg_dir_paths:
-        build_pkg_dirs.append(BUILDPkg(build_pkg_dir_path, set(build_file_names)))
+        build_pkgs.append(BUILDPkg(build_pkg_dir_path, set(build_file_names)))
 
     python_moduledir = get_python_moduledir()
     dependency_resolver = DependencyResolver(
@@ -41,10 +42,19 @@ def run(build_pkg_dir_paths: list[str]):
         nodes_collator=NodesCollator(),
     )
 
-    for build_pkg_dir in build_pkg_dirs:
-        build_pkg_dir.resolve_deps_for_targets(dependency_resolver.resolve_deps_for_srcs)
-        LOGGER.info(build_pkg_dir)
-        # build_pkg_dir.write_to_build_file()
+    modified_build_file_paths: list[str] = []
+    for build_pkg in build_pkgs:
+        build_pkg.resolve_deps_for_targets(dependency_resolver.resolve_deps_for_srcs)
+        LOGGER.debug(build_pkg)
+        if build_pkg.has_uncommitted_changes():
+            build_pkg.write_to_build_file()
+            modified_build_file_paths.append(build_pkg.path())
+
+    if modified_build_file_paths:
+        run_plz_fmt(*modified_build_file_paths)
+        LOGGER.info(f"📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.")
+    else:
+        LOGGER.info("No BUILD files were modified. Your imports were 👌 already.")
     return
 
 
