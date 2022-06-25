@@ -178,6 +178,9 @@ def get_all_targets(
 
 
 def run_plz_fmt(*paths: str):
+    if len(paths) == 0:
+        raise ValueError("programming error: expected at least 1 path to be passed into plz fmt -w; got 0")
+
     cmd = " ".join(["plz", "fmt", "-w", *paths])
 
     LOGGER.debug(f"Running {cmd}")
@@ -185,7 +188,7 @@ def run_plz_fmt(*paths: str):
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     if not _is_success_return_code(proc.returncode):
         LOGGER.error(
-            "Got a non-zero return code while trying to run `plz query alltargets`",
+            f"Got a non-zero return code while trying to run `{cmd}`",
             exc_info=proc.stderr,
         )
         raise RuntimeError(proc.stderr)

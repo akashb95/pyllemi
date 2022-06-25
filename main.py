@@ -50,8 +50,11 @@ def run(build_pkg_dir_paths: list[str]):
             build_pkg.write_to_build_file()
             modified_build_file_paths.append(build_pkg.path())
 
-    run_plz_fmt(*modified_build_file_paths)
-    LOGGER.info(f"Modified BUILD files: {', '.join(modified_build_file_paths)}.")
+    if modified_build_file_paths:
+        run_plz_fmt(*modified_build_file_paths)
+        LOGGER.info(f"📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.")
+    else:
+        LOGGER.info("No BUILD files were modified. Your imports were 👌 already.")
     return
 
 
