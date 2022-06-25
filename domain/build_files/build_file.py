@@ -57,7 +57,6 @@ class BUILDFile:
                 ast_call,
                 {
                     "deps": domain_python_target.kwargs["deps"],
-                    "srcs": domain_python_target.kwargs["srcs"],
                 },
             )
         return
