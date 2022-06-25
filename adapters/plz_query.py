@@ -84,17 +84,17 @@ def get_plz_build_graph(
     return json.loads("".join(stdout))
 
 
-def get_whatinputs(glob_paths: list[str]) -> WhatInputsResult:
+def get_whatinputs(paths: list[str]) -> WhatInputsResult:
     """
 
-    :param glob_paths: a Collection of paths to python modules.
+    :param paths: a Collection of OS paths to python modules.
     :return: a list of plz targets
     """
 
-    if len(glob_paths) == 0:
+    if len(paths) == 0:
         return WhatInputsResult(set(), set())
 
-    cmd = ["plz", "query", "whatinputs", *glob_paths]
+    cmd = ["plz", "query", "whatinputs", *paths]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     if not _is_success_return_code(proc.returncode):
         LOGGER.error(

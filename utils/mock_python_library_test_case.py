@@ -29,7 +29,7 @@ class MockPythonLibraryTestCase(TestCase):
             f.write(f"# TEST: {self.test_dir}")
 
         with open(self.subpackage_build_file, "w") as f:
-            f.write("""python_test(name="test_subpackage", srcs=["test_module_0.py", "test_module_1.py"])""")
+            f.write("""python_test(name="test_subpackage", srcs=["test_module_1.py"])""")
 
         with open(self.package_module, "w") as f:
             f.write("x = 5")

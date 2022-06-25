@@ -1,5 +1,4 @@
 import os
-from unittest import TestCase
 
 from domain.imports.enriched_import import EnrichedImport, ImportType, resolve_import_type, to_whatinputs_input
 from utils.mock_python_library_test_case import MockPythonLibraryTestCase
@@ -30,7 +29,7 @@ class TestResolveImportType(MockPythonLibraryTestCase):
         return
 
 
-class TestToWhatInputsInput(TestCase):
+class TestToWhatInputsInput(MockPythonLibraryTestCase):
     def test_module(self):
         import_ = EnrichedImport("test.module", ImportType.MODULE)
         self.assertEqual(
@@ -40,9 +39,9 @@ class TestToWhatInputsInput(TestCase):
         return
 
     def test_package(self):
-        import_ = EnrichedImport("test.package", ImportType.PACKAGE)
+        import_ = EnrichedImport(self.subpackage_dir, ImportType.PACKAGE)
         self.assertEqual(
-            [os.path.join("test", "package", "**", "*.py"), os.path.join("test", "package", "**", "*.pyi")],
+            [self.subpackage_module],
             to_whatinputs_input(import_),
         )
         return
