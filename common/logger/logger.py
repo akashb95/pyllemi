@@ -3,6 +3,7 @@ Utility function for setting up a logger that uses the logging function with a s
 """
 
 import logging  # noqa: LOG001
+import os
 import sys
 from logging.handlers import RotatingFileHandler
 from typing import Optional
@@ -26,7 +27,7 @@ class UpperThresholdFilter(logging.Filter):
 
 def setup_logger(
     name: str,
-    level: int,
+    level: Optional[int] = None,
     formatter: Optional[logging.Formatter] = None,
     filepath: Optional[str] = None,
 ) -> logging.Logger:
@@ -39,6 +40,8 @@ def setup_logger(
     :return: Logger instance
     """
 
+    level_from_env = os.getenv("PYLLEMI_LOG_LEVEL") or logging.WARNING
+
     log_fmt = (
         "%(asctime)s [%(levelname)s] [%(threadName)s] || %(funcName)s in %(pathname)s :%(lineno)d\n"
         "%(message)s\n"
@@ -49,7 +52,7 @@ def setup_logger(
         formatter = PrettyFormatter(log_fmt)
 
     logger = logging.getLogger(name)
-    logger.setLevel(level)
+    logger.setLevel(int(level_from_env))
 
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)

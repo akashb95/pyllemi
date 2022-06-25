@@ -19,7 +19,7 @@ class PythonTargetTypes(Enum):
 
 
 class Target:
-    readable_attributes = frozenset({"srcs", "deps"})
+    readable_attributes = frozenset({"srcs", "deps", "name"})
     modifiable_attributes = frozenset({"deps"})
 
     def __init__(self, *, rule_name: str, **kwargs):
@@ -57,7 +57,7 @@ class Target:
     def __getitem__(self, item: str) -> Optional[set[str]]:
         if item not in self.readable_attributes:
             return None
-        return getattr(self.kwargs, item, None)
+        return self.kwargs.get(item)
 
     def __setitem__(self, key: str, value: set[str]) -> None:
         if self.kwargs[key] is None:

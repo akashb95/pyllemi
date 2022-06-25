@@ -2,11 +2,12 @@ import re
 
 
 class PlzTarget:
-    __absolute_target_path_pattern__ = re.compile("^//(.*):([a-zA-Z0-9_]*)$")
-    __simple_absolute_target_path_pattern__ = re.compile("^//(.+)$")
+    __absolute_target_path_pattern__ = re.compile(r"^//([\w/\-]*):(\w+)$")
+    __simple_absolute_target_path_pattern__ = re.compile(r"^//([\w/\-]+)$")
+    __relative_target_path_pattern__ = re.compile(r"^:([\w\-]+)")
 
-    def __init__(self, canonical_build_target_path: str):
-        absolute_target_match = re.match(self.__absolute_target_path_pattern__, canonical_build_target_path)
+    def __init__(self, target: str):
+        absolute_target_match = re.match(self.__absolute_target_path_pattern__, target)
         if absolute_target_match is not None:
             self.build_pkg_dir: str = absolute_target_match.group(1)
             self.target_name: str = (
@@ -18,17 +19,26 @@ class PlzTarget:
 
         simple_absolute_target_match = re.match(
             self.__simple_absolute_target_path_pattern__,
-            canonical_build_target_path,
+            target,
         )
         if simple_absolute_target_match is not None:
             self.build_pkg_dir: str = simple_absolute_target_match.group(1)
             self.target_name: str = self.build_pkg_dir.split("/")[-1]
             return
 
+        relative_target_match = re.match(self.__relative_target_path_pattern__, target)
+        if relative_target_match is not None:
+            self.build_pkg_dir: str = ""
+            self.target_name: str = relative_target_match.group(1)
+
         else:
-            raise ValueError(
-                f"{canonical_build_target_path} does not match the format of a canonical BUILD target path"
-            )
+            raise ValueError(f"{target} does not match the format of a BUILD target path")
+
+    def __eq__(self, other: "PlzTarget") -> bool:
+        return self.canonicalise() == other.canonicalise()
+
+    def __hash__(self):
+        return hash(self.canonicalise())
 
     def __str__(self):
         return self.simplify()

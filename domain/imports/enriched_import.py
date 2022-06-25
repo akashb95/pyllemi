@@ -1,7 +1,12 @@
 import os
 from dataclasses import dataclass
 from enum import IntEnum, unique
+from glob import glob
 from typing import Optional
+
+from common.logger.logger import setup_logger
+
+LOGGER = setup_logger(__name__)
 
 
 @unique
@@ -68,9 +73,13 @@ def to_whatinputs_input(import_: EnrichedImport) -> Optional[list[str]]:
         return [os_path_from_reporoot + ".pyi"]
 
     if import_.type_ == ImportType.PACKAGE:
-        return [
-            os.path.join(os_path_from_reporoot, "**", "*.py"),
-            os.path.join(os_path_from_reporoot, "**", "*.pyi"),
+        all_paths: list[str] = [
+            *glob(os.path.join(os_path_from_reporoot, "**", "*.py"), recursive=True),
+            *glob(os.path.join(os_path_from_reporoot, "**", "*.pyi"), recursive=True),
         ]
 
+        if not all_paths:
+            LOGGER.warning(f"Could not find any importable modules in package '{import_.import_}'.")
+            return None
+        return all_paths
     return None

@@ -4,13 +4,14 @@ python_library(
     name = "plz",
     srcs = glob(
         ["*.py"],
-        exclude = ["_test.py"],
+        exclude = ["*_test.py"],
     ),
     deps = [
         "//adapters",
         "//common/logger",
         "//converters",
-        "//domain/ast",
+        "//domain/imports",
+        "//domain/targets",
     ],
 )
 

@@ -57,7 +57,6 @@ class BUILDFile:
                 ast_call,
                 {
                     "deps": domain_python_target.kwargs["deps"],
-                    "srcs": domain_python_target.kwargs["srcs"],
                 },
             )
         return
@@ -71,6 +70,9 @@ class BUILDFile:
     @property
     def has_modifiable_nodes(self) -> bool:
         return len(self._modifiable_nodes) > 0
+
+    def __str__(self) -> str:
+        return self.dump_ast()
 
 
 def _update_ast_call_keywords(
