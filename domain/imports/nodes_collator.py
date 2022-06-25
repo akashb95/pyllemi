@@ -28,6 +28,9 @@ class NodesCollator:
                 self._logger.debug(path)
             self._logger.debug(code)
             raise e
+        except FileNotFoundError as e:
+            self._logger.fatal(f"Could not read src at {path}", exc_info=e)
+            raise e
 
         for node in ast.walk(root):
             if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom):
