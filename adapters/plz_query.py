@@ -177,6 +177,22 @@ def get_all_targets(
     return stdout
 
 
+def run_plz_fmt(*paths: str):
+    cmd = " ".join(["plz", "fmt", "-w", *paths])
+
+    LOGGER.debug(f"Running {cmd}")
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    if not _is_success_return_code(proc.returncode):
+        LOGGER.error(
+            "Got a non-zero return code while trying to run `plz query alltargets`",
+            exc_info=proc.stderr,
+        )
+        raise RuntimeError(proc.stderr)
+
+    return
+
+
 def _convert_list_of_bytes_to_list_of_strs(input_: Optional[IO[AnyStr]]) -> list[str]:
     if input_ is None:
         return []

@@ -4,20 +4,18 @@ python_library(
     name = "targets",
     srcs = glob(
         ["*.py"],
-        exclude = ["_test.py"],
+        exclude = ["*_test.py"],
     ),
     deps = [
         "//adapters",
         "//common/logger",
-        "//converters",
         "//domain/ast",
+        "//domain/imports",
     ],
 )
 
 python_test(
     name = "targets_test",
     srcs = glob(["*_test.py"]),
-    deps = [
-        ":targets",
-    ],
+    deps = ["//domain/targets"],
 )

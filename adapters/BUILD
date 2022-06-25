@@ -4,16 +4,13 @@ python_library(
     name = "adapters",
     srcs = glob(
         ["*.py"],
-        exclude = ["_test.py"],
+        exclude = ["*_test.py"],
     ),
-    deps = [
-        "//common/logger",
-        "//utils",
-    ],
+    deps = ["//common/logger"],
 )
 
 python_test(
     name = "adapters_test",
     srcs = glob(["*_test.py"]),
-    deps = [":adapters"],
+    deps = ["//adapters"],
 )

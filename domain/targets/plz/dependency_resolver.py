@@ -60,7 +60,7 @@ class DependencyResolver:
         # Filter out stdlib modules.
         top_level_module_name = get_top_level_module_name(enriched_import.import_)
         if top_level_module_name in self.std_lib_modules:
-            self._logger.info(f"Found import of a standard lib module: {top_level_module_name}")
+            self._logger.debug(f"Found import of a standard lib module: {top_level_module_name}")
             return None
 
         # Resolve 3rd-party library targets.

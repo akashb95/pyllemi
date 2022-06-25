@@ -4,7 +4,7 @@ python_library(
     name = "os",
     srcs = glob(
         ["*.py"],
-        exclude = ["_test.py"],
+        exclude = ["*_test.py"],
     ),
     deps = [
         "//common/logger",
@@ -16,7 +16,8 @@ python_test(
     name = "os_test",
     srcs = glob(["*_test.py"]),
     deps = [
-        ":os",
+        "//adapters/os",
+        "//domain/targets",
         "//utils",
     ],
 )

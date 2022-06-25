@@ -33,7 +33,7 @@ class BUILDPkg:
         self._build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
 
         self._new_pkg_creator = NewBuildPkgCreator(self._dir_path, set(build_file_names))
-        self._this_pkg_build_file_name: str = ""
+        self._this_pkg_build_file_path: str = ""
 
         self._initialise()
         return
@@ -65,10 +65,7 @@ class BUILDPkg:
 
         for node in self._build_file.get_existing_ast_python_build_rules():
             as_python_target = target_converters.from_ast_node_to_python_target(node, self._dir_path)
-            self._logger.debug(
-                f"Found target in {os.path.join(self._dir_path, self._this_pkg_build_file_name)}: "
-                f"{as_python_target}"
-            )
+            self._logger.debug(f"Found target in {self._this_pkg_build_file_path}: {as_python_target}")
 
             resolved_deps = deps_resolver_fn(
                 PlzTarget(f"//{self._dir_path}:{as_python_target['name']}"),
@@ -87,7 +84,7 @@ class BUILDPkg:
     def _is_new_pkg(self) -> bool:
         for build_file_name in self._build_file_names:
             if os.path.isfile(path := os.path.join(self._dir_path, build_file_name)):
-                self._this_pkg_build_file_name = path
+                self._this_pkg_build_file_path = path
                 self._logger.debug(f"Found existing BUILD file: {path}")
                 return False
 
@@ -98,7 +95,7 @@ class BUILDPkg:
                 # Check for any directories named after BUILD file.
                 # e.g. if path/to/build were a directory, we cannot create path/to/BUILD as a file.
                 continue
-            self._this_pkg_build_file_name = path
+            self._this_pkg_build_file_path = path
         return True
 
     def _infer_targets_and_add_to_build_file(self):
@@ -119,12 +116,12 @@ class BUILDPkg:
         return
 
     def _parse_existing_python_targets(self):
-        if self._this_pkg_build_file_name == "":
+        if self._this_pkg_build_file_path == "":
             raise ValueError(
                 "programming error: pkg build file must be calculated before parsing existing Python targets"
             )
 
-        with open(self._this_pkg_build_file_name, "r") as build_file:
+        with open(self._this_pkg_build_file_path, "r") as build_file:
             contents = build_file.read()
 
         contents_as_ast = ast.parse(contents)
@@ -136,10 +133,17 @@ class BUILDPkg:
 
     def write_to_build_file(self) -> str:
         if not self._uncommitted_changes:
-            self._logger.debug(f"no changes made to {self._this_pkg_build_file_name}")
-            return self._this_pkg_build_file_name
+            self._logger.debug(f"no changes made to {self._this_pkg_build_file_path}")
+            return self._this_pkg_build_file_path
 
         dumped_ast = self._build_file.dump_ast()
-        with open(self._this_pkg_build_file_name, "w") as build_file:
+        with open(self._this_pkg_build_file_path, "w") as build_file:
             build_file.write(dumped_ast)
-        return self._this_pkg_build_file_name
+        self._uncommitted_changes = False
+        return self._this_pkg_build_file_path
+
+    def has_uncommitted_changes(self) -> bool:
+        return self._uncommitted_changes
+
+    def path(self) -> str:
+        return self._this_pkg_build_file_path
