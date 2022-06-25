@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 from argparse import ArgumentParser
 
 from adapters.custom_arg_types import existing_dir_arg_type
@@ -48,6 +48,17 @@ def run(build_pkg_dir_paths: list[str]):
     return
 
 
+def to_relative_path_from_reporoot(path: str) -> str:
+    if not os.path.isabs(path):
+        as_abs_path = os.path.abspath(os.path.join(os.getcwd(), path))
+    else:
+        as_abs_path = path
+    without_reporoot_prefix = as_abs_path.removeprefix(get_reporoot())
+    if as_abs_path == without_reporoot_prefix:
+        raise ValueError(f"{path} not within Plz repo")
+    return without_reporoot_prefix.removeprefix(os.path.sep)
+
+
 if __name__ == "__main__":
     from common.logger.logger import setup_logger
 
@@ -66,6 +77,10 @@ if __name__ == "__main__":
 
     LOGGER = setup_logger(__file__)
 
+    # Input sanitisation and change dir to reporoot
     build_pkg_dirs_arg = args.build_pkg_dir
-    LOGGER.debug(f"resolving imports for {', '.join(build_pkg_dirs_arg)}; cwd: {os.getcwd()}")
-    run(build_pkg_dirs_arg)
+    build_pkg_dirs = list(map(to_relative_path_from_reporoot, args.build_pkg_dir))
+    os.chdir(get_reporoot())
+
+    LOGGER.debug(f"resolving imports for {', '.join(build_pkg_dirs)}; cwd: {os.getcwd()}")
+    run(build_pkg_dirs)

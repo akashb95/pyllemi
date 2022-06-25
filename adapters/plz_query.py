@@ -81,6 +81,7 @@ def get_plz_build_graph(
     stdout: list[str] = []
     for line in proc.stdout:
         stdout.append(line.decode().rstrip())
+    proc.kill()
     return json.loads("".join(stdout))
 
 
