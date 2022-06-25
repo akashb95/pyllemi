@@ -22,5 +22,5 @@ def kwarg_to_ast_keyword(key: str, value: BUILD_RULE_KWARG_VALUE_TYPE) -> Option
     elif isinstance(value, Union[str, int, bool]):
         return ast.keyword(arg=key, value=ast.Constant(value=value))
 
-    # Note that a value can also be of type dict, but we should never need to write this to a BUILD file from here.
+    # Note that a value can also be of type dict, but we should never need to write this to a BUILD file from Pyllemi.
     return

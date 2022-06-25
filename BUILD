@@ -1,12 +1,6 @@
-python_library(
-    name = "pyllemi_lib",
-    srcs = glob(
-        ["*.py"],
-        exclude = [
-            "*_test.py",
-            "main.py",
-        ],
-    ),
+python_binary(
+    name = "pyllemi",
+    main = "main.py",
     deps = [
         "//adapters",
         "//common/logger",
@@ -14,11 +8,6 @@ python_library(
         "//domain/imports",
         "//domain/targets",
         "//domain/targets/plz",
+        "//converters",
     ],
-)
-
-python_binary(
-    name = "pyllemi",
-    main = "main.py",
-    deps = [":pyllemi_lib"],
 )
