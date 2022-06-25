@@ -7,9 +7,9 @@ python_library(
         exclude = ["*_test.py"],
     ),
     deps = [
+        "//adapters/os",
         "//common/logger",
         "//domain/build_files",
-        "//adapters/os",
         "//domain/targets",
     ],
 )

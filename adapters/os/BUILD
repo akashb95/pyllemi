@@ -15,5 +15,8 @@ python_library(
 python_test(
     name = "os_test",
     srcs = glob(["*_test.py"]),
-    deps = [":os", "//utils"],
+    deps = [
+        ":os",
+        "//utils",
+    ],
 )

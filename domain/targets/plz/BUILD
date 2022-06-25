@@ -21,7 +21,7 @@ python_test(
     deps = [
         ":plz",
         "//adapters",
-        "//domain/targets",
         "//domain/imports",
+        "//domain/targets",
     ],
 )
