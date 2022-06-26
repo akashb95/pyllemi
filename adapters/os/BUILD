@@ -16,7 +16,7 @@ python_test(
     name = "os_test",
     srcs = glob(["*_test.py"]),
     deps = [
-        "//adapters/os",
+        ":os",
         "//domain/targets",
         "//utils",
     ],
