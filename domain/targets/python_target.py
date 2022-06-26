@@ -19,7 +19,7 @@ class PythonTargetTypes(Enum):
 
 
 class Target:
-    readable_attributes = frozenset({"srcs", "deps", "name"})
+    readable_attributes = frozenset({"srcs", "deps", "name", "main"})
     modifiable_attributes = frozenset({"deps"})
 
     def __init__(self, *, rule_name: str, **kwargs):

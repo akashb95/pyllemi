@@ -69,14 +69,18 @@ class BUILDPkg:
 
             resolved_deps = deps_resolver_fn(
                 PlzTarget(f"//{self._dir_path}:{as_python_target['name']}"),
-                as_python_target["srcs"],
+                # Only a python_binary target has the main attribute; all other Python targets will have srcs.
+                # The occurrence of the 2 different attributes are mutually exclusive.
+                as_python_target["srcs"] or [as_python_target["main"]],
             )
 
-            if set(map(PlzTarget, as_python_target["deps"])) == resolved_deps:
+            if (
+                new_deps := set(map(lambda plz_target: plz_target.simplify(self._dir_path), resolved_deps))
+            ) == as_python_target["deps"]:
                 # No need to update dependencies if there is no change
                 continue
 
-            as_python_target["deps"] = set(map(str, resolved_deps))
+            as_python_target["deps"] = new_deps
             self._build_file.register_modified_build_rule_to_python_target(node, as_python_target)
             self._uncommitted_changes = True
         return

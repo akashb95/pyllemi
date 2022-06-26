@@ -17,5 +17,5 @@ python_library(
 python_test(
     name = "targets_test",
     srcs = glob(["*_test.py"]),
-    deps = ["//domain/targets"],
+    deps = [":targets"],
 )

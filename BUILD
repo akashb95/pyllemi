@@ -6,8 +6,6 @@ python_binary(
         "//common/logger",
         "//domain/build_pkgs",
         "//domain/imports",
-        "//domain/targets",
         "//domain/targets/plz",
-        "//converters",
     ],
 )

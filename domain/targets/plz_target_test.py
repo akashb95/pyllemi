@@ -67,3 +67,8 @@ class TestPlzTarget(TestCase):
         )
         self.assertEqual("//path/to/lib", str(plz_target))
         return
+
+    def test_simplify_with_relative_path_from_reporoot(self):
+        plz_target = PlzTarget("//path/to/lib:lib")
+        self.assertEqual(":lib", plz_target.simplify("path/to/lib"))
+        return
