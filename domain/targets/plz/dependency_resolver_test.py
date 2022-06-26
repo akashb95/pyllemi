@@ -27,6 +27,7 @@ class TestDependencyResolver(TestCase):
             enricher=self.mock_enricher,
             std_lib_modules=sys.stdlib_module_names,
             available_third_party_module_targets={"//third_party/python:colorama"},
+            known_dependencies={},
             nodes_collator=self.mock_nodes_collator,
         )
 
@@ -57,6 +58,7 @@ class TestDependencyResolver(TestCase):
             enricher=self.mock_enricher,
             std_lib_modules=sys.stdlib_module_names,
             available_third_party_module_targets={"//third_party/python:colorama"},
+            known_dependencies={},
             nodes_collator=self.mock_nodes_collator,
         )
 
@@ -88,6 +90,7 @@ class TestDependencyResolver(TestCase):
             enricher=self.mock_enricher,
             std_lib_modules=sys.stdlib_module_names,
             available_third_party_module_targets={"//third_party/python:colorama"},
+            known_dependencies={},
             nodes_collator=self.mock_nodes_collator,
         )
 
@@ -103,12 +106,40 @@ class TestDependencyResolver(TestCase):
 
         return
 
+    @mock.patch("builtins.open", new_callable=mock.mock_open(read_data="import custom.module"))
+    def test_injects_known_dependencies(self, mock_file_open: mock.MagicMock):
+        self.mock_nodes_collator.collate.return_value = [
+            mock_import_node := ast.Import(names=[ast.Name(name="colorama")])
+        ]
+        mock_file_open.return_value.__enter__.return_value.read.return_value = "import colorama"
+        self.mock_enricher.convert.return_value = [[EnrichedImport("colorama", ImportType.THIRD_PARTY_MODULE)]]
+
+        dep_resolver = DependencyResolver(
+            python_moduledir="third_party.python",
+            enricher=self.mock_enricher,
+            std_lib_modules=sys.stdlib_module_names,
+            available_third_party_module_targets={"//third_party/python:colorama"},
+            known_dependencies={"path.to.x": [PlzTarget("//injected/pkg:target")]},
+            nodes_collator=self.mock_nodes_collator,
+        )
+
+        deps = dep_resolver.resolve_deps_for_srcs(PlzTarget("//path/to:target"), srcs={"x.py"})
+        mock_file_open.assert_called_once_with("path/to/x.py", "r")
+        self.mock_nodes_collator.collate.assert_called_once_with(code="import colorama", path="path/to/x.py")
+        self.mock_enricher.convert.assert_called_once_with(mock_import_node)
+        self.assertEqual(
+            {PlzTarget("//third_party/python:colorama"), PlzTarget("//injected/pkg:target")},
+            deps,
+        )
+        return
+
     def test_returns_empty_with_no_srcs(self):
         dep_resolver = DependencyResolver(
             python_moduledir="third_party.python",
             enricher=self.mock_enricher,
             std_lib_modules=sys.stdlib_module_names,
             available_third_party_module_targets={"//third_party/python:colorama"},
+            known_dependencies={},
             nodes_collator=self.mock_nodes_collator,
         )
         self.assertEqual(set(), dep_resolver.resolve_deps_for_srcs(PlzTarget("//does/not:matter"), set()))
