@@ -70,6 +70,7 @@ def to_relative_path_from_reporoot(path: str) -> str:
 
 
 if __name__ == "__main__":
+    import time
     from common.logger.logger import setup_logger
 
     parser = ArgumentParser()
@@ -88,9 +89,13 @@ if __name__ == "__main__":
     LOGGER = setup_logger(__file__)
 
     # Input sanitisation and change dir to reporoot
-    build_pkg_dirs_arg = args.build_pkg_dir
-    build_pkg_dirs = list(map(to_relative_path_from_reporoot, args.build_pkg_dir))
+    build_pkg_dirs = list(map(to_relative_path_from_reporoot, set(args.build_pkg_dir)))
     os.chdir(get_reporoot())
 
-    LOGGER.debug(f"resolving imports for {', '.join(build_pkg_dirs)}; cwd: {os.getcwd()}")
+    LOGGER.debug(f"resolving imports for {{{', '.join(build_pkg_dirs)}}}; cwd: {os.getcwd()}")
+
+    start_time = time.time()
     run(build_pkg_dirs)
+    duration = time.time() - start_time
+
+    LOGGER.debug(f"Dependency target resolution for {{{', '.join(build_pkg_dirs)}}} took {duration} seconds.")

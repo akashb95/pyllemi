@@ -31,6 +31,8 @@ class DependencyResolver:
         self.enricher = enricher
 
         self.collator = nodes_collator
+
+        self._whatinputs_inputs_for_this_target: set[str] = set()
         return
 
     def resolve_deps_for_srcs(self, srcs_plz_target: PlzTarget, srcs: set[str]) -> set[PlzTarget]:
@@ -52,6 +54,10 @@ class DependencyResolver:
                             continue
                         import_targets |= deps
 
+        # Make the call to `plz query whatinputs ...` to find all the custom module dep targets.
+        import_targets |= self._query_whatinputs_for_whatinputs_batch()
+        self._whatinputs_inputs_for_this_target.clear()
+
         # Remove "self-dependency" cycles.
         import_targets.discard(srcs_plz_target)
         return import_targets
@@ -70,17 +76,18 @@ class DependencyResolver:
 
         self._logger.debug(f"Found import of a custom lib module: {enriched_import.import_}")
 
-        # TODO(#15): implement batching so that all whatinputs queries can be done in one fell swoop per input plz
-        #  target.
-
         # TODO(#4): add ability to 'guess' target based on import path -- if it is not a target,
         #  then revert to whatinputs.
         if (whatinputs_input := to_whatinputs_input(enriched_import)) is not None:
-            whatinputs_result = get_whatinputs(whatinputs_input)
-            if len(whatinputs_result.targetless_paths) > 0:
-                self._logger.error(
-                    f"Could not find targets for imports: {', '.join(whatinputs_result.targetless_paths)}"
-                )
-            return set(map(PlzTarget, whatinputs_result.plz_targets))
+            # Batch whatinputs calls for performance gains.
+            self._whatinputs_inputs_for_this_target |= set(whatinputs_input)
 
         return None
+
+    def _query_whatinputs_for_whatinputs_batch(self) -> set[PlzTarget]:
+        self._logger.debug(f"running whatinputs on {self._whatinputs_inputs_for_this_target} to whatinputs_batch")
+
+        whatinputs_result = get_whatinputs(list(self._whatinputs_inputs_for_this_target))
+        if len(whatinputs_result.targetless_paths) > 0:
+            self._logger.error(f"Could not find targets for imports: {', '.join(whatinputs_result.targetless_paths)}")
+        return set(map(PlzTarget, whatinputs_result.plz_targets))
