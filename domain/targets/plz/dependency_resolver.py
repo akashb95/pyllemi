@@ -58,8 +58,6 @@ class DependencyResolver:
                         import_targets |= deps
 
             # Inject known dependencies.
-            self._logger.warning(convert_os_path_to_import_path(relative_path_to_src))
-
             if (
                 known_deps_for_src := self.known_dependencies.get(convert_os_path_to_import_path(relative_path_to_src))
             ) is not None:

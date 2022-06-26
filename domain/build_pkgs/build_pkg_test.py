@@ -32,9 +32,9 @@ class TestBuildPkgWithNewBuildPkg(MockPythonLibraryWithNewBuildPkgTestCase):
         """
         mock_build_file_instance.dump_ast.return_value = mock_dumped_ast
 
-        BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}))
+        BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}), config={})
 
-        mock_new_build_pkg_creator.assert_called_once_with(self.new_pkg_path, frozenset({"BUILD"}))
+        mock_new_build_pkg_creator.assert_called_once_with(self.new_pkg_path, frozenset({"BUILD"}), False)
         mock_new_build_pkg_creator_instance.infer_py_targets.assert_called_once()
         self.assertEqual(2, mock_build_file_instance.add_new_target.call_count)
         mock_file_open.return_value.write.assert_called_once_with(mock_dumped_ast)
@@ -59,9 +59,9 @@ class TestBuildPkgWithNewBuildPkg(MockPythonLibraryWithNewBuildPkgTestCase):
         mock_dumped_ast = """python_library(name="name", srcs=["module.py", "stub_module.pyi"], deps=[])"""
         mock_build_file_instance.dump_ast.return_value = mock_dumped_ast
 
-        build_pkg = BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}))
+        build_pkg = BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}), config={})
 
-        mock_new_build_pkg_creator.assert_called_once_with(self.new_pkg_path, frozenset({"BUILD"}))
+        mock_new_build_pkg_creator.assert_called_once_with(self.new_pkg_path, frozenset({"BUILD"}), False)
         mock_new_build_pkg_creator_instance.infer_py_targets.assert_called_once()
         mock_build_file_instance.add_new_target.assert_called_once_with(mock_python_lib)
         mock_file_open.return_value.write.assert_called_once_with(mock_dumped_ast)
@@ -74,6 +74,34 @@ class TestBuildPkgWithNewBuildPkg(MockPythonLibraryWithNewBuildPkgTestCase):
             PythonLibrary(name="name", srcs={"module.py", "stub_module.pyi"}, deps={":dep"}),
         )
         self.assertTrue(build_pkg._uncommitted_changes)
+
+        return
+
+    @mock.patch("builtins.open", new_callable=mock.mock_open)
+    @mock.patch("domain.build_pkgs.build_pkg.NewBuildPkgCreator", autospec=True)
+    @mock.patch("domain.build_pkgs.build_pkg.BUILDFile", autospec=True)
+    def test_initialises_with_use_globs(
+        self,
+        mock_build_file: mock.MagicMock,
+        mock_new_build_pkg_creator: mock.MagicMock,
+        mock_file_open: mock.MagicMock,
+    ):
+        mock_new_build_pkg_creator_instance: mock.MagicMock = mock_new_build_pkg_creator.return_value
+        mock_new_build_pkg_creator_instance.infer_py_targets.return_value = (
+            mock_python_lib := PythonLibrary(name="name", srcs={"module.py", "stub_module.pyi"}, deps=set()),
+            None,
+        )
+        mock_build_file_instance: mock.MagicMock = mock_build_file.return_value
+        mock_dumped_ast = """python_library(name="name", srcs=glob(["*.py"], exclude=["*_test.py"]), deps=[])"""
+        mock_build_file_instance.dump_ast.return_value = mock_dumped_ast
+
+        BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}), config={"useGlobAsSrcs": True})
+
+        mock_new_build_pkg_creator.assert_called_once_with(self.new_pkg_path, frozenset({"BUILD"}), True)
+        mock_new_build_pkg_creator_instance.infer_py_targets.assert_called_once()
+        mock_build_file_instance.add_new_target.assert_called_once_with(mock_python_lib)
+        mock_file_open.return_value.write.assert_called_once_with(mock_dumped_ast)
+
         return
 
 
@@ -89,9 +117,9 @@ class TestBuildPkgWithExistingBuildFile(MockPythonLibraryTestCase):
         mock_new_build_pkg_creator_instance.infer_py_targets.assert_not_called()
         mock_build_file_instance: mock.MagicMock = mock_build_file.return_value
 
-        build_pkg = BUILDPkg(self.subpackage_dir, frozenset({"BUILD"}))
+        build_pkg = BUILDPkg(self.subpackage_dir, frozenset({"BUILD"}), config={})
 
-        mock_new_build_pkg_creator.assert_called_once_with(self.subpackage_dir, frozenset({"BUILD"}))
+        mock_new_build_pkg_creator.assert_called_once_with(self.subpackage_dir, frozenset({"BUILD"}), False)
         mock_build_file_instance.add_new_target.assert_not_called()
         mock_build_file_instance.dump_ast.assert_not_called()
 

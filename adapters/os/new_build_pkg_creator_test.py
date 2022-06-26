@@ -54,3 +54,18 @@ class MyTestCase(MockPythonLibraryWithNewBuildPkgTestCase):
         self.assertIsNone(library)
         self.assertIsNone(test)
         return
+
+    def test_with_use_glob(self):
+        new_build_pkg_creator = NewBuildPkgCreator(self.new_pkg_path, use_glob=True)
+        library, test = new_build_pkg_creator.infer_py_targets()
+        self.assertIsNotNone(library)
+        self.assertIsNotNone(test)
+        self.assertEqual(
+            target.PythonLibrary(name="new_pkg", srcs=target.PythonLibrary.glob_call, deps=set()),
+            library,
+        )
+        self.assertEqual(
+            target.PythonTest(name="new_pkg_test", srcs=target.PythonTest.glob_call, deps=set()),
+            test,
+        )
+        return

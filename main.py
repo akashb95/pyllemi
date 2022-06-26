@@ -21,6 +21,7 @@ from domain.targets.plz.dependency_resolver import DependencyResolver
 from domain.targets.plz_target import PlzTarget
 
 
+# noinspection PyShadowingNames
 def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
     """
 
@@ -37,7 +38,7 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
 
     build_pkgs: list[BUILDPkg] = []
     for build_pkg_dir_path in build_pkg_dir_paths:
-        build_pkgs.append(BUILDPkg(build_pkg_dir_path, set(build_file_names)))
+        build_pkgs.append(BUILDPkg(build_pkg_dir_path, set(build_file_names), config))
 
     python_moduledir = get_python_moduledir()
     dependency_resolver = DependencyResolver(

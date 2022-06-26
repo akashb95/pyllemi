@@ -1,6 +1,7 @@
+import ast
 from collections import OrderedDict
 from enum import Enum
-from typing import Optional
+from typing import Optional, Union
 
 
 class PythonTargetTypes(Enum):
@@ -70,7 +71,7 @@ class Target:
 
 
 class Python(Target):
-    def __init__(self, *, rule_name: str, name: str, srcs: set[str], deps: set[str], **kwargs):
+    def __init__(self, *, rule_name: str, name: str, srcs: Union[set[str], ast.Call], deps: set[str], **kwargs):
         super().__init__(rule_name=rule_name, name=name, srcs=srcs, deps=deps, **kwargs)
         return
 
@@ -82,12 +83,34 @@ class PythonBinary(Python):
 
 
 class PythonLibrary(Python):
-    def __init__(self, *, name: str, srcs: set[str], deps: set[str]):
-        super().__init__(rule_name="python_library", name=name, srcs=srcs, deps=deps)
+    glob_call = ast.Call(
+        func=ast.Name(id="glob"),
+        args=[ast.List(elts=[ast.Constant(value="*.py")])],
+        keywords=[ast.keyword(arg="exclude", value=ast.List(elts=[ast.Constant(value="*_test.py")]))],
+    )
+
+    def __init__(self, *, name: str, srcs: set[str], deps: set[str], srcs_glob: bool = False):
+        super().__init__(
+            rule_name="python_library",
+            name=name,
+            srcs=self.glob_call if srcs_glob is True else srcs,
+            deps=deps,
+        )
         return
 
 
 class PythonTest(Python):
-    def __init__(self, *, name: str, srcs: set[str], deps: set[str]):
-        super().__init__(rule_name="python_test", name=name, srcs=srcs, deps=deps)
+    glob_call = ast.Call(
+        func=ast.Name(id="glob"),
+        args=[ast.List(elts=[ast.Constant(value="*_test.py")])],
+        keywords=[],
+    )
+
+    def __init__(self, *, name: str, srcs: set[str], deps: set[str], srcs_glob: bool = False):
+        super().__init__(
+            rule_name="python_test",
+            name=name,
+            srcs=self.glob_call if srcs_glob is True else srcs,
+            deps=deps,
+        )
         return
