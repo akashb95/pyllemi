@@ -1,7 +1,7 @@
 import ast
 import logging
 import os.path
-from typing import Callable, Collection, Optional
+from typing import Callable, Collection, Optional, Any
 
 from adapters.os.new_build_pkg_creator import NewBuildPkgCreator
 from common.logger.logger import setup_logger
@@ -24,7 +24,7 @@ class BUILDPkg:
 
     """
 
-    def __init__(self, dir_path_relative_to_reporoot: str, build_file_names: Collection[str]):
+    def __init__(self, dir_path_relative_to_reporoot: str, build_file_names: Collection[str], config: dict[str, Any]):
         self._logger = setup_logger(__file__, logging.INFO)
         self._uncommitted_changes: bool = False
         self._dir_path: str = dir_path_relative_to_reporoot
@@ -32,7 +32,11 @@ class BUILDPkg:
 
         self._build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
 
-        self._new_pkg_creator = NewBuildPkgCreator(self._dir_path, set(build_file_names))
+        self._new_pkg_creator = NewBuildPkgCreator(
+            self._dir_path,
+            set(build_file_names),
+            config.get("useGlobAsSrcs", False),
+        )
         self._this_pkg_build_file_path: str = ""
 
         self._initialise()

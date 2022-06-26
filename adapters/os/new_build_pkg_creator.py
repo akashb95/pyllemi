@@ -6,9 +6,10 @@ from domain.targets import python_target as target
 
 
 class NewBuildPkgCreator:
-    def __init__(self, path_to_pkg: str, build_file_names: Optional[set[str]] = None):
+    def __init__(self, path_to_pkg: str, build_file_names: Optional[set[str]] = None, use_glob=False):
         self._path_to_pkg = path_to_pkg
         self._new_package_module_finder = NewPackageModuleFinder(path_to_pkg, build_file_names)
+        self._use_glob = use_glob
         return
 
     def infer_py_targets(self) -> tuple[Optional[target.PythonLibrary], Optional[target.PythonTest]]:
@@ -34,6 +35,7 @@ class NewBuildPkgCreator:
             name=target_name,
             srcs=self._new_package_module_finder.library_targets,
             deps=set(),
+            srcs_glob=self._use_glob,
         )
 
     def _infer_python_test(self, *, target_name) -> Optional[target.PythonTest]:
@@ -43,4 +45,5 @@ class NewBuildPkgCreator:
             name=target_name,
             srcs=self._new_package_module_finder.test_targets,
             deps=set(),
+            srcs_glob=self._use_glob,
         )

@@ -1,7 +1,7 @@
 import ast
 from typing import Optional, Union
 
-BUILD_RULE_KWARG_VALUE_TYPE = Union[bool, int, list, set, str]
+BUILD_RULE_KWARG_VALUE_TYPE = Union[bool, int, list, set, str, ast.Call]
 
 
 def kwargs_to_ast_keywords(**kwargs) -> list[ast.keyword]:
@@ -19,8 +19,10 @@ def kwarg_to_ast_keyword(key: str, value: BUILD_RULE_KWARG_VALUE_TYPE) -> Option
             arg=key,
             value=ast.List(elts=[ast.Constant(value=constant_value) for constant_value in values]),
         )
-    elif isinstance(value, Union[str, int, bool]):
+    if isinstance(value, Union[str, int, bool]):
         return ast.keyword(arg=key, value=ast.Constant(value=value))
+    if isinstance(value, ast.Call):
+        return ast.keyword(arg=key, value=value)
 
     # Note that a value can also be of type dict, but we should never need to write this to a BUILD file from Pyllemi.
     return
