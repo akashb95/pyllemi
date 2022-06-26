@@ -1,12 +1,12 @@
 from unittest import TestCase
 
-from domain.targets.plz_target import PlzTarget
+from domain.targets.plz_target import PlzTarget, InvalidPlzTargetError
 
 
 class TestPlzTarget(TestCase):
     def test_invalid_target_pattern_raises_err(self):
         self.assertRaisesRegex(
-            ValueError,
+            InvalidPlzTargetError,
             "potato does not match the format of a BUILD target path",
             PlzTarget,
             "potato",

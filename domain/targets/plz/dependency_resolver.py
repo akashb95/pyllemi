@@ -3,6 +3,7 @@ from typing import Collection, Optional
 
 from adapters.plz_query import get_whatinputs
 from common.logger.logger import setup_logger
+from converters.converters import convert_os_path_to_import_path
 from domain.imports.enriched_import import to_whatinputs_input, EnrichedImport
 from domain.imports.enricher import ToEnrichedImports
 from domain.imports.nodes_collator import NodesCollator
@@ -21,6 +22,7 @@ class DependencyResolver:
         enricher: ToEnrichedImports,
         std_lib_modules: Collection[str],
         available_third_party_module_targets: set[str],
+        known_dependencies: dict[str, Collection[PlzTarget]],
         nodes_collator: NodesCollator,
     ):
         self._logger = setup_logger(__name__)
@@ -28,6 +30,7 @@ class DependencyResolver:
         self.python_moduledir = python_moduledir
         self.std_lib_modules = std_lib_modules
         self.available_third_party_module_targets = frozenset(available_third_party_module_targets)
+        self.known_dependencies = known_dependencies
         self.enricher = enricher
 
         self.collator = nodes_collator
@@ -53,6 +56,17 @@ class DependencyResolver:
                         if deps is None:
                             continue
                         import_targets |= deps
+
+            # Inject known dependencies.
+            self._logger.warning(convert_os_path_to_import_path(relative_path_to_src))
+
+            if (
+                known_deps_for_src := self.known_dependencies.get(convert_os_path_to_import_path(relative_path_to_src))
+            ) is not None:
+                self._logger.debug(
+                    f"Injecting {set(map(str, known_deps_for_src))} as known dependencies for src '{src}'"
+                )
+                import_targets |= set(known_deps_for_src)
 
         # Make the call to `plz query whatinputs ...` to find all the custom module dep targets.
         import_targets |= self._query_whatinputs_for_whatinputs_batch()
@@ -85,7 +99,7 @@ class DependencyResolver:
         return None
 
     def _query_whatinputs_for_whatinputs_batch(self) -> set[PlzTarget]:
-        self._logger.debug(f"running whatinputs on {self._whatinputs_inputs_for_this_target} to whatinputs_batch")
+        self._logger.debug(f"running whatinputs on {self._whatinputs_inputs_for_this_target}")
 
         whatinputs_result = get_whatinputs(list(self._whatinputs_inputs_for_this_target))
         if len(whatinputs_result.targetless_paths) > 0:

@@ -2,6 +2,10 @@ import re
 from typing import Optional
 
 
+class InvalidPlzTargetError(ValueError):
+    pass
+
+
 class PlzTarget:
     __absolute_target_path_pattern__ = re.compile(r"^//([\w/\-]*):(\w+)$")
     __simple_absolute_target_path_pattern__ = re.compile(r"^//([\w/\-]+)$")
@@ -33,7 +37,7 @@ class PlzTarget:
             self.target_name: str = relative_target_match.group(1)
 
         else:
-            raise ValueError(f"{target} does not match the format of a BUILD target path")
+            raise InvalidPlzTargetError(f"{target} does not match the format of a BUILD target path")
 
     def __eq__(self, other: "PlzTarget") -> bool:
         return self.canonicalise() == other.canonicalise()
