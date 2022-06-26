@@ -12,5 +12,5 @@ python_library(
 python_test(
     name = "adapters_test",
     srcs = glob(["*_test.py"]),
-    deps = ["//adapters"],
+    deps = [":adapters"],
 )

@@ -4,12 +4,9 @@ python_library(
     name = "converters",
     srcs = glob(
         ["*.py"],
-        exclude = ["_test.py"],
+        exclude = ["*_test.py"],
     ),
-    deps = [
-        "//adapters",
-        "//utils",
-    ],
+    deps = [],
 )
 
 python_test(
@@ -17,5 +14,6 @@ python_test(
     srcs = glob(["*_test.py"]),
     deps = [
         ":converters",
+        "//utils",
     ],
 )

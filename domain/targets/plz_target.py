@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 
 
 class PlzTarget:
@@ -49,11 +50,14 @@ class PlzTarget:
     def canonicalise(self) -> str:
         return f"//{self.build_pkg_dir}:{self.target_name}"
 
-    def simplify(self) -> str:
+    def simplify(self, relative_path_from_reporoot: Optional[str] = None) -> str:
         """
         Simplifies the plz target according to Plz Target conventions.
         I.e. //path/to/lib:lib ≡ //path/to/lib
         """
+
+        if relative_path_from_reporoot is not None and self.build_pkg_dir == relative_path_from_reporoot:
+            return f":{self.target_name}"
 
         build_pkg_dir_split = self.build_pkg_dir.split("/")
         build_pkg_dir_basename: str = ""
