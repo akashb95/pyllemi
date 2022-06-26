@@ -88,6 +88,7 @@ def read_config_file(path: str) -> dict[str, Any]:
         return json.loads(contents)
     except json.JSONDecodeError as e:
         LOGGER.critical("Could not read config file", exc_info=e)
+        raise e
 
 
 if __name__ == "__main__":
