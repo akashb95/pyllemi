@@ -6,14 +6,17 @@ python_library(
         ["*.py"],
         exclude = ["*_test.py"],
     ),
-    deps = ["//common/logger"],
+    deps = [
+        "//common/logger",
+        "//domain/imports/stdlib",
+    ],
 )
 
 python_test(
     name = "imports_test",
     srcs = glob(["*_test.py"]),
     deps = [
-        "//domain/imports",
+        ":imports",
         "//utils",
     ],
 )

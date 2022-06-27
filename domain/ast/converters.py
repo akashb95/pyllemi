@@ -13,13 +13,13 @@ def kwargs_to_ast_keywords(**kwargs) -> list[ast.keyword]:
 
 
 def kwarg_to_ast_keyword(key: str, value: BUILD_RULE_KWARG_VALUE_TYPE) -> Optional[ast.keyword]:
-    if isinstance(value, Union[list, set]):
+    if isinstance(value, list) or isinstance(value, set):
         values = sorted(list(value))
         return ast.keyword(
             arg=key,
             value=ast.List(elts=[ast.Constant(value=constant_value) for constant_value in values]),
         )
-    if isinstance(value, Union[str, int, bool]):
+    if isinstance(value, str) or isinstance(value, bool) or isinstance(value, int):
         return ast.keyword(arg=key, value=ast.Constant(value=value))
     if isinstance(value, ast.Call):
         return ast.keyword(arg=key, value=value)

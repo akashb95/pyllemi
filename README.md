@@ -1,5 +1,7 @@
 # Pyllemi
 
+[![CI](https://github.com/akashb95/pyllemi/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/akashb95/pyllemi/actions/workflows/ci.yml)
+
 Pyllemi is a CLI tool to automatically update and create Please BUILD dependencies for Python targets. More
 specifically, it can:
 
@@ -62,10 +64,12 @@ configured.
 WIP
 
 ```python
-PYLLEMI_VERSION = "v1.0.0"
+# tools/BUILD
+
+PYLLEMI_VERSION = "v0.8.1"
 remote_file(
     name="pyllemi",
-    url=f"https://github.com/akashb95/pyllemi/releases/download/{PYLLEMI_VERSION}/pyllemi-{PYLLEMI_VERSION}.pex",
+    url=f"https://github.com/akashb95/pyllemi/releases/download/{PYLLEMI_VERSION}/pyllemi.pex",
     extract=False,
     binary=True,
 )

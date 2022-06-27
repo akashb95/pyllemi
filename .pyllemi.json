@@ -1,3 +1,9 @@
 {
+  "knownDependencies": [
+    {
+      "module": "domain.imports.stdlib_modules",
+      "plzTarget": "//domain/imports/stdlib"
+    }
+  ],
   "useGlobAsSrcs": true
 }
