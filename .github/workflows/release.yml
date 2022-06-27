@@ -20,11 +20,11 @@ jobs:
         with:
           python-version: '3.10.5'
           architecture: 'x64'
-      - name: Build
+      - name: Build .pex binary
         run: |
           cd $GITHUB_WORKSPACE
           ./pleasew build --profile ci //:pyllemi
-          cp plz-out/bin/pyllemi.pex
+          cp plz-out/bin/pyllemi.pex ./
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
