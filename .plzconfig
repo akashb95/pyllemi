@@ -29,3 +29,6 @@ cmd = query changes --level=-1 --since $(git rev-parse HEAD) | plz test
 ; Enable tab completion for build labels
 positionallabels = true
 
+[alias "update-py-targets"]
+cmd = run --wd=. //third_party/tools:pyllemi -- ./ -v
+desc = Uses Pyllemi to update Python rules in the current directory.

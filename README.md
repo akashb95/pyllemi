@@ -1,6 +1,7 @@
 # Pyllemi
 
 [![CI](https://github.com/akashb95/pyllemi/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/akashb95/pyllemi/actions/workflows/ci.yml)
+[![Release](https://github.com/akashb95/pyllemi/actions/workflows/release.yml/badge.svg)](https://github.com/akashb95/pyllemi/actions/workflows/release.yml)
 
 Pyllemi is a CLI tool to automatically update and create Please BUILD dependencies for Python targets. More
 specifically, it can:
@@ -61,12 +62,12 @@ configured.
 
 ## Running Pyllemi with Please
 
-WIP
+Create a `remote_file` BUILD rule to download the `.pex` binary from Github.
 
 ```python
 # tools/BUILD
 
-PYLLEMI_VERSION = "v0.8.1"
+PYLLEMI_VERSION = "v0.8.3"
 remote_file(
     name="pyllemi",
     url=f"https://github.com/akashb95/pyllemi/releases/download/{PYLLEMI_VERSION}/pyllemi.pex",
@@ -74,3 +75,19 @@ remote_file(
     binary=True,
 )
 ```
+
+Optionally, you can create an alias to run the downloaded version of Pyllemi.
+
+```
+# .plzconfig
+
+[alias "update-py-targets"]
+cmd = run --wd=. //third_party/tools:pyllemi -- ./ -v
+```
+
+## Compatibility
+
+Tested on Python 3.9 and 3.10.
+
+The binary contains the shebang `#!/usr/bin/env python3` - Pyllemi will be run using the version of Python3 which `env`
+points to.
