@@ -58,13 +58,11 @@ class ToEnrichedImports:
             raise ValueError("pyfile_path cannot be empty for relative imports")
 
         if node.level > 0 and os.path.dirname(pyfile_path) == "":
-            # TODO: verify if this is correct
             # invalid Python import
             raise ImportError(f"attempted relative import with no known parent package (file: {pyfile_path})")
 
         imports: list[EnrichedImport] = []
         if node.level > 0:
-            # raise NotImplementedError
             transformed_ast_node = self._relative_import_from_node_to_absolute_import_from_node(node, pyfile_path)
             for node in transformed_ast_node:
                 imports.extend(self._import_from_node(node, pyfile_path))
@@ -84,7 +82,8 @@ class ToEnrichedImports:
                 imports.append(full_import)
                 continue
 
-            # Since we know node.module is a package, <node.module>.<name.name> must either be:
+            # Since we know node.module is a package, but <node.module>.<name.name> is of unknown import type,
+            # <node.module>.<name.name> must either be:
             # * import from __init__.py or __init__.pyi
             # * erroneous
             # TODO: add unit-test for this path
@@ -145,7 +144,12 @@ class ToEnrichedImports:
                 import_type,
             )
 
-        if import_type == ImportType.UNKNOWN or import_type == ImportType.MODULE or import_type == ImportType.STUB:
+        if (
+            import_type == ImportType.UNKNOWN
+            or import_type == ImportType.MODULE
+            or import_type == ImportType.STUB
+            or import_type == ImportType.PROTOBUF_GEN
+        ):
             return EnrichedImport(import_path_candidate, import_type)
 
         return EnrichedImport(import_path_candidate, ImportType.PACKAGE)
