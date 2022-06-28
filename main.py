@@ -53,9 +53,10 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
     modified_build_file_paths: list[str] = []
     for build_pkg in build_pkgs:
         build_pkg.resolve_deps_for_targets(dependency_resolver.resolve_deps_for_srcs)
-        LOGGER.debug(build_pkg)
         if build_pkg.has_uncommitted_changes():
             build_pkg.write_to_build_file()
+
+        if build_pkg.has_been_modified:
             modified_build_file_paths.append(build_pkg.path())
 
     if modified_build_file_paths:

@@ -2,10 +2,10 @@ package(default_visibility=["PUBLIC"])
 
 python_library(
     name = "known",
-    srcs = [
-        "__init__.py",
-        "known.py",
-    ],
+    srcs = glob(
+        ["*.py"],
+        exclude = ["*_test.py"],
+    ),
     deps = [
         "//common/logger",
         "//domain/targets",
@@ -15,7 +15,7 @@ python_library(
 
 python_test(
     name = "known_test",
-    srcs = ["known_test.py"],
+    srcs = glob(["*_test.py"]),
     deps = [
         ":known",
         "//domain/targets",

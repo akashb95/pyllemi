@@ -39,6 +39,8 @@ class BUILDPkg:
         )
         self._this_pkg_build_file_path: str = ""
 
+        self._has_been_modified = True
+
         self._initialise()
         return
 
@@ -148,6 +150,7 @@ class BUILDPkg:
         with open(self._this_pkg_build_file_path, "w") as build_file:
             build_file.write(dumped_ast)
         self._uncommitted_changes = False
+        self._has_been_modified = True
         return self._this_pkg_build_file_path
 
     def has_uncommitted_changes(self) -> bool:
@@ -155,3 +158,7 @@ class BUILDPkg:
 
     def path(self) -> str:
         return self._this_pkg_build_file_path
+
+    @property
+    def has_been_modified(self) -> bool:
+        return self._has_been_modified
