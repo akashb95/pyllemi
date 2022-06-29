@@ -80,7 +80,7 @@ def to_whatinputs_input(import_: EnrichedImport) -> Optional[list[str]]:
     if import_.type_ == ImportType.STUB:
         return [os_path_from_reporoot + ".pyi"]
     if import_.type_ == ImportType.PROTOBUF_GEN:
-        return [os_path_from_reporoot + ".proto"]
+        return [os_path_from_reporoot.removesuffix("_pb2").removesuffix("_pb2_grpc") + ".proto"]
 
     if import_.type_ == ImportType.PACKAGE:
         all_paths: list[str] = [
