@@ -23,9 +23,11 @@ jobs:
       - name: Build .pex binary
         run: |
           cd $GITHUB_WORKSPACE
-          ./pleasew build --profile ci //:pyllemi
-          cp plz-out/bin/pyllemi.pex ./
+          ./pleasew build --profile ci //:pyllemi-py39 //:pyllemi-py310
+          cp plz-out/bin/pyllemi-*.pex ./
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: pyllemi.pex
+          files: |
+          pyllemi-py39.pex
+          pyllemi-py310.pex
