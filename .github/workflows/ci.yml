@@ -32,4 +32,4 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           ./pleasew cover --profile ci
-          ./pleasew query changes --level=-1 --since origin/${GITHUB_BASE_REF#...HEAD} | ./pleasew cover --colour --plain_output --verbosity=notice --include_all_files --profile ci -
+          ./pleasew query changes --level=-1 --since origin/${GITHUB_BASE_REF%...HEAD} | ./pleasew cover --colour --plain_output --verbosity=notice --include_all_files --profile ci -
