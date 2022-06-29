@@ -31,4 +31,4 @@ jobs:
       - name: Run plz cover
         run: |
           cd $GITHUB_WORKSPACE
-          ./pleasew cover --profile ci
+          plz query changes --level=-1 --since origin/${{ github.base_ref }} | plz cover --colour --plain_output --verbosity=notice --include_all_files --profile ci -
