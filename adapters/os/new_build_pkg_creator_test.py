@@ -1,7 +1,7 @@
 import os
 
 from adapters.os.new_build_pkg_creator import NewBuildPkgCreator
-from domain.targets import python_target as target
+from domain.plz.rule import python as target
 from utils.mock_python_library_with_new_build_pkg_test_case import MockPythonLibraryWithNewBuildPkgTestCase
 
 
@@ -12,7 +12,7 @@ class MyTestCase(MockPythonLibraryWithNewBuildPkgTestCase):
         library, test = new_build_pkg_creator.infer_py_targets()
         self.assertIsNone(test)
         self.assertEqual(
-            target.PythonLibrary(name="new_pkg", srcs={"module.py", "stub_module.pyi"}, deps=set()),
+            target.Library(name="new_pkg", srcs={"module.py", "stub_module.pyi"}, deps=set()),
             library,
         )
         return
@@ -25,7 +25,7 @@ class MyTestCase(MockPythonLibraryWithNewBuildPkgTestCase):
         library, test = new_build_pkg_creator.infer_py_targets()
         self.assertIsNone(library)
         self.assertEqual(
-            target.PythonTest(name="new_pkg_test", srcs={"module_test.py"}, deps=set()),
+            target.Test(name="new_pkg_test", srcs={"module_test.py"}, deps=set()),
             test,
         )
         return
@@ -35,11 +35,11 @@ class MyTestCase(MockPythonLibraryWithNewBuildPkgTestCase):
 
         library, test = new_build_pkg_creator.infer_py_targets()
         self.assertEqual(
-            target.PythonLibrary(name="new_pkg", srcs={"module.py", "stub_module.pyi"}, deps=set()),
+            target.Library(name="new_pkg", srcs={"module.py", "stub_module.pyi"}, deps=set()),
             library,
         )
         self.assertEqual(
-            target.PythonTest(name="new_pkg_test", srcs={"module_test.py"}, deps=set()),
+            target.Test(name="new_pkg_test", srcs={"module_test.py"}, deps=set()),
             test,
         )
         return
@@ -61,11 +61,11 @@ class MyTestCase(MockPythonLibraryWithNewBuildPkgTestCase):
         self.assertIsNotNone(library)
         self.assertIsNotNone(test)
         self.assertEqual(
-            target.PythonLibrary(name="new_pkg", srcs=target.PythonLibrary.glob_call, deps=set()),
+            target.Library(name="new_pkg", srcs=target.Library.glob_call, deps=set()),
             library,
         )
         self.assertEqual(
-            target.PythonTest(name="new_pkg_test", srcs=target.PythonTest.glob_call, deps=set()),
+            target.Test(name="new_pkg_test", srcs=target.Test.glob_call, deps=set()),
             test,
         )
         return

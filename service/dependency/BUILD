@@ -1,7 +1,7 @@
-package(default_visibility = ["PUBLIC"])
+package(default_visibility=["PUBLIC"])
 
 python_library(
-    name = "plz",
+    name = "dependency",
     srcs = glob(
         ["*.py"],
         exclude = ["*_test.py"],
@@ -11,17 +11,17 @@ python_library(
         "//common/logger",
         "//converters",
         "//domain/imports",
-        "//domain/targets",
+        "//domain/plz/target",
     ],
 )
 
 python_test(
-    name = "plz_test",
+    name = "dependency_test",
     srcs = glob(["*_test.py"]),
     deps = [
-        ":plz",
+        ":dependency",
         "//adapters",
         "//domain/imports",
-        "//domain/targets",
+        "//domain/plz/target",
     ],
 )

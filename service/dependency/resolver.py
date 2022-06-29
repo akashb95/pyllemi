@@ -7,7 +7,7 @@ from converters.converters import convert_os_path_to_import_path
 from domain.imports.enriched_import import to_whatinputs_input, EnrichedImport
 from domain.imports.enricher import ToEnrichedImports
 from domain.imports.nodes_collator import NodesCollator
-from domain.targets.plz_target import PlzTarget
+from domain.plz.target.target import PlzTarget
 
 
 def get_top_level_module_name(abs_import_path: str) -> str:

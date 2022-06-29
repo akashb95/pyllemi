@@ -1,6 +1,6 @@
 import ast
 
-from domain.targets.python_target import PythonTargetTypes
+from domain.plz.rule.rule import Types
 
 
 def is_ast_node_python_build_rule(node: ast.AST) -> bool:
@@ -8,5 +8,5 @@ def is_ast_node_python_build_rule(node: ast.AST) -> bool:
 
 
 def is_python_target_type(item):
-    t = PythonTargetTypes.UNKNOWN
+    t = Types.UNKNOWN
     return item in t

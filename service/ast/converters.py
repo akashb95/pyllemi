@@ -1,11 +1,13 @@
 import ast
-from typing import Optional
+from typing import Optional, Union
 
-import domain.ast.converters as ast_converters
 from adapters.plz_query import get_print
-from domain.targets.plz_target import PlzTarget
-from domain.targets.python_target import PythonBinary, PythonLibrary, Python, PythonTargetTypes, PythonTest, Target
+from domain.plz.rule.python import Binary, Library, Python, Test
+from domain.plz.rule.rule import Rule, Types
+from domain.plz.target.target import PlzTarget
 from domain.targets.utils import is_ast_node_python_build_rule
+
+BUILD_RULE_KWARG_VALUE_TYPE = Union[bool, int, list, set, str, ast.Call]
 
 
 def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python:
@@ -13,7 +15,7 @@ def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python
 
     :param node:
     :param build_pkg_dir: Relative path from reporoot
-    :return: Domain repr of Python Target
+    :return: Domain repr of Python Rule
     """
 
     # Validation.
@@ -24,9 +26,9 @@ def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python
         raise TypeError(f"AST node func is of type {type(node.func).__name__}; expected {type(ast.Name())}")
 
     if node.func.id not in (
-        PythonTargetTypes.PYTHON_BINARY.value,
-        PythonTargetTypes.PYTHON_LIBRARY.value,
-        PythonTargetTypes.PYTHON_TEST.value,
+            Types.PYTHON_BINARY.value,
+            Types.PYTHON_LIBRARY.value,
+            Types.PYTHON_TEST.value,
     ):
         raise ValueError(f"BUILD rule call function is called '{node.func.id}', which is not a supported Python rule")
 
@@ -35,7 +37,7 @@ def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python
     srcs: set[str] = set()
     deps: set[str] = set()
 
-    if node.func.id == PythonTargetTypes.PYTHON_LIBRARY.value:
+    if node.func.id == Types.PYTHON_LIBRARY.value:
         # Extract target name.
         if len(node.args) > 0:
             name_as_arg = node.args[0]
@@ -68,9 +70,9 @@ def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python
 
                     deps.add(elt.value)
 
-        return PythonLibrary(name=name, deps=deps, srcs=srcs)
+        return Library(name=name, deps=deps, srcs=srcs)
 
-    if node.func.id == PythonTargetTypes.PYTHON_TEST.value:
+    if node.func.id == Types.PYTHON_TEST.value:
         # Extract target name.
         if len(node.args) > 0:
             name_as_arg = node.args[0]
@@ -103,9 +105,9 @@ def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python
 
                     deps.add(elt.value)
 
-        return PythonTest(name=name, deps=deps, srcs=srcs)
+        return Test(name=name, deps=deps, srcs=srcs)
 
-    if node.func.id == PythonTargetTypes.PYTHON_BINARY.value:
+    if node.func.id == Types.PYTHON_BINARY.value:
         main: Optional[str] = None
         if len(node.args) > 0:
             name_as_arg = node.args[0]
@@ -130,7 +132,7 @@ def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python
 
                     deps.add(elt.value)
 
-        return PythonBinary(name=name, deps=deps, main=main)
+        return Binary(name=name, deps=deps, main=main)
 
 
 # noinspection PyTypeChecker
@@ -147,26 +149,50 @@ def from_ast_module_to_python_build_rule_occurrences(
     return build_rule_ast_call_to_domain_target
 
 
-def python_target_to_ast_call_node(t: Target) -> Optional[ast.Call]:
-    if t.type_ == PythonTargetTypes.PYTHON_LIBRARY:
+def python_target_to_ast_call_node(t: Rule) -> Optional[ast.Call]:
+    if t.type_ == Types.PYTHON_LIBRARY:
         return ast.Call(
-            func=ast.Name(id=PythonTargetTypes.PYTHON_LIBRARY.value),
-            keywords=ast_converters.kwargs_to_ast_keywords(**t.kwargs),
+            func=ast.Name(id=Types.PYTHON_LIBRARY.value),
+            keywords=kwargs_to_ast_keywords(**t.kwargs),
             args=[],
         )
 
-    if t.type_ == PythonTargetTypes.PYTHON_TEST:
+    if t.type_ == Types.PYTHON_TEST:
         return ast.Call(
-            func=ast.Name(id=PythonTargetTypes.PYTHON_TEST.value),
-            keywords=ast_converters.kwargs_to_ast_keywords(**t.kwargs),
+            func=ast.Name(id=Types.PYTHON_TEST.value),
+            keywords=kwargs_to_ast_keywords(**t.kwargs),
             args=[],
         )
 
-    if t.type_ == PythonTargetTypes.PYTHON_BINARY:
+    if t.type_ == Types.PYTHON_BINARY:
         return ast.Call(
-            func=ast.Name(id=PythonTargetTypes.PYTHON_BINARY.value),
-            keywords=ast_converters.kwargs_to_ast_keywords(**t.kwargs),
+            func=ast.Name(id=Types.PYTHON_BINARY.value),
+            keywords=kwargs_to_ast_keywords(**t.kwargs),
             args=[],
         )
 
+    return
+
+
+def kwargs_to_ast_keywords(**kwargs) -> list[ast.keyword]:
+    keywords: list[ast.keyword] = []
+    for key, value in kwargs.items():
+        if (keyword := kwarg_to_ast_keyword(key, value)) is not None:
+            keywords.append(keyword)
+    return keywords
+
+
+def kwarg_to_ast_keyword(key: str, value: BUILD_RULE_KWARG_VALUE_TYPE) -> Optional[ast.keyword]:
+    if isinstance(value, list) or isinstance(value, set):
+        values = sorted(list(value))
+        return ast.keyword(
+            arg=key,
+            value=ast.List(elts=[ast.Constant(value=constant_value) for constant_value in values]),
+        )
+    if isinstance(value, str) or isinstance(value, bool) or isinstance(value, int):
+        return ast.keyword(arg=key, value=ast.Constant(value=value))
+    if isinstance(value, ast.Call):
+        return ast.keyword(arg=key, value=value)
+
+    # Note that a value can also be of type dict, but we should never need to write this to a BUILD file from Pyllemi.
     return

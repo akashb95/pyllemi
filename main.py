@@ -19,8 +19,8 @@ from domain.imports.enricher import ToEnrichedImports
 from domain.imports.known.known import known_dependencies_from_config
 from domain.imports.nodes_collator import NodesCollator
 from domain.imports.stdlib_modules import get_stdlib_module_names
-from domain.targets.plz.dependency_resolver import DependencyResolver
-from domain.targets.plz_target import PlzTarget
+from domain.plz.target.target import PlzTarget
+from service.dependency.resolver import DependencyResolver
 
 
 # noinspection PyShadowingNames

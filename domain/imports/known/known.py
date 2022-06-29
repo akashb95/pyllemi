@@ -4,7 +4,7 @@ from typing import Any
 import jsonschema
 
 from common.logger.logger import setup_logger
-from domain.targets.plz_target import PlzTarget
+from domain.plz.target.target import PlzTarget
 
 LOGGER = setup_logger(__file__)
 

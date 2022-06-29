@@ -4,7 +4,7 @@ from unittest import TestCase
 import jsonschema.exceptions
 
 from domain.imports.known.known import known_dependencies_from_config
-from domain.targets.plz_target import PlzTarget, InvalidPlzTargetError
+from domain.plz.target.target import PlzTarget, InvalidPlzTargetError
 
 
 class TestKnown(TestCase):

@@ -6,9 +6,9 @@ from typing import Callable, Collection, Optional, Any
 from adapters.os.new_build_pkg_creator import NewBuildPkgCreator
 from common.logger.logger import setup_logger
 from domain.build_files.build_file import BUILDFile
-from domain.targets import converters as target_converters
-from domain.targets.plz_target import PlzTarget
-from domain.targets.python_target import PythonLibrary, PythonTest
+from domain.plz.rule.python import Library, Test
+from domain.plz.target.target import PlzTarget
+from service.ast import converters as target_converters
 
 
 class BUILDPkg:
@@ -109,8 +109,8 @@ class BUILDPkg:
         return True
 
     def _infer_targets_and_add_to_build_file(self):
-        python_library: Optional[PythonLibrary]
-        python_test: Optional[PythonTest]
+        python_library: Optional[Library]
+        python_test: Optional[Test]
         python_library, python_test = self._new_pkg_creator.infer_py_targets()
 
         if python_library is None and python_test is None:

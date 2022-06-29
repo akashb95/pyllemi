@@ -6,16 +6,5 @@ python_library(
         ["*.py"],
         exclude = ["*_test.py"],
     ),
-    deps = [
-        "//adapters",
-        "//common/logger",
-        "//domain/ast",
-        "//domain/imports",
-    ],
-)
-
-python_test(
-    name = "targets_test",
-    srcs = glob(["*_test.py"]),
-    deps = [":targets"],
+    deps = ["//domain/plz/rule"],
 )

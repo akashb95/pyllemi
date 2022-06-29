@@ -1,15 +1,15 @@
 import ast
 from unittest import TestCase, mock
 
-from domain.targets.converters import from_ast_node_to_python_target
-from domain.targets.python_target import PythonLibrary, PythonTest, PythonBinary
+from domain.plz.rule.python import Library, Test, Binary
+from service.ast.converters import from_ast_node_to_python_target
 
 
 class ConvertersTest(TestCase):
     def test_converts_python_library(self):
         input_ast_node = ast.parse("python_library(name='lib', srcs=['input.py'], deps=[':dep'])")
         self.assertEqual(
-            PythonLibrary(name="lib", srcs={"input.py"}, deps={":dep"}),
+            Library(name="lib", srcs={"input.py"}, deps={":dep"}),
             from_ast_node_to_python_target(input_ast_node.body[0].value, "path/to/lib"),
         )
         return
@@ -17,7 +17,7 @@ class ConvertersTest(TestCase):
     def test_converts_python_test(self):
         input_ast_node = ast.parse("python_test(name='test', srcs=['lib_test.py'], deps=[':lib'])")
         self.assertEqual(
-            PythonTest(name="test", srcs={"lib_test.py"}, deps={":lib"}),
+            Test(name="test", srcs={"lib_test.py"}, deps={":lib"}),
             from_ast_node_to_python_target(input_ast_node.body[0].value, "//path/to/test"),
         )
         return
@@ -25,18 +25,18 @@ class ConvertersTest(TestCase):
     def test_converts_python_binary(self):
         input_ast_node = ast.parse("python_binary(name='bin', main='main.py', deps=[':dep'])")
         self.assertEqual(
-            PythonBinary(name="bin", main="main.py", deps={":dep"}),
+            Binary(name="bin", main="main.py", deps={":dep"}),
             from_ast_node_to_python_target(input_ast_node.body[0].value, "//path/to/bin"),
         )
         return
 
-    @mock.patch("domain.targets.converters.get_print")
+    @mock.patch("service.ast.converters.get_print")
     def test_fetches_srcs_via_plz_query_if_srcs_is_not_list(self, mock_plz_query_print: mock.MagicMock):
         with self.subTest("python_library"):
             input_ast_node = ast.parse("python_library(name='target', srcs=glob(['*.py'], exclude=['*_test.py']))")
             mock_plz_query_print.return_value = ["__init__.py", "module.py"]
             self.assertEqual(
-                PythonLibrary(name="target", srcs={"__init__.py", "module.py"}, deps=set()),
+                Library(name="target", srcs={"__init__.py", "module.py"}, deps=set()),
                 from_ast_node_to_python_target(input_ast_node.body[0].value, "path/to"),
             )
             mock_plz_query_print.assert_called_once_with("//path/to:target", "srcs")
@@ -47,7 +47,7 @@ class ConvertersTest(TestCase):
             input_ast_node = ast.parse("python_test(name='test', srcs=glob(['*_test.py']))")
             mock_plz_query_print.return_value = ["module_test.py"]
             self.assertEqual(
-                PythonTest(name="test", srcs={"module_test.py"}, deps=set()),
+                Test(name="test", srcs={"module_test.py"}, deps=set()),
                 from_ast_node_to_python_target(input_ast_node.body[0].value, "path/to"),
             )
             mock_plz_query_print.assert_called_once_with("//path/to:_test#lib", "srcs")

@@ -56,7 +56,7 @@ class PlzTarget:
 
     def simplify(self, relative_path_from_reporoot: Optional[str] = None) -> str:
         """
-        Simplifies the plz target according to Plz Target conventions.
+        Simplifies the plz target according to Plz Rule conventions.
         I.e. //path/to/lib:lib ≡ //path/to/lib
         """
 

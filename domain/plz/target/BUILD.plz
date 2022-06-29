@@ -1,0 +1,16 @@
+package(default_visibility=["//domain/...", "//service/..."])
+
+python_library(
+    name = "target",
+    srcs = glob(
+        ["*.py"],
+        exclude = ["*_test.py"],
+    ),
+    deps = [],
+)
+
+python_test(
+    name = "target_test",
+    srcs = glob(["*_test.py"]),
+    deps = [":target"],
+)

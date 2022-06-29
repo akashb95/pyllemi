@@ -2,10 +2,10 @@ import ast
 import logging
 from typing import Iterator
 
-import domain.ast.converters as ast_converters
-import domain.targets.converters as target_converters
+import service.ast.converters as ast_converters
+import service.ast.converters as target_converters
 from common.logger.logger import setup_logger
-from domain.targets import python_target as domain_target
+from domain.plz.rule import python as domain_target
 from domain.targets.utils import is_ast_node_python_build_rule
 
 
@@ -55,9 +55,7 @@ class BUILDFile:
         for ast_call, domain_python_target in self._modified_build_rule_to_domain_python_target.items():
             _update_ast_call_keywords(
                 ast_call,
-                {
-                    "deps": domain_python_target.kwargs["deps"],
-                },
+                {"deps": domain_python_target.kwargs["deps"]},
             )
         return
 

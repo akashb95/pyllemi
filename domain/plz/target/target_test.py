@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from domain.targets.plz_target import PlzTarget, InvalidPlzTargetError
+from domain.plz.target.target import PlzTarget, InvalidPlzTargetError
 
 
 class TestPlzTarget(TestCase):

@@ -4,8 +4,8 @@ from unittest import mock, TestCase
 
 from adapters.plz_query import WhatInputsResult
 from domain.imports.enriched_import import EnrichedImport, ImportType
-from domain.targets.plz.dependency_resolver import DependencyResolver
-from domain.targets.plz_target import PlzTarget
+from domain.plz.target.target import PlzTarget
+from service.dependency.resolver import DependencyResolver
 
 
 class TestDependencyResolver(TestCase):
@@ -39,7 +39,7 @@ class TestDependencyResolver(TestCase):
 
         return
 
-    @mock.patch("domain.targets.plz.dependency_resolver.get_whatinputs")
+    @mock.patch("service.dependency.resolver.get_whatinputs")
     @mock.patch("builtins.open", new_callable=mock.mock_open(read_data="import custom.module"))
     def test_resolve_deps_for_srcs_with_whatinputs_result(
         self,
@@ -71,7 +71,7 @@ class TestDependencyResolver(TestCase):
 
         return
 
-    @mock.patch("domain.targets.plz.dependency_resolver.get_whatinputs")
+    @mock.patch("service.dependency.resolver.get_whatinputs")
     @mock.patch("builtins.open", new_callable=mock.mock_open(read_data="import custom.module"))
     def test_removes_self_dependency(
         self,
