@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import sys
 from argparse import ArgumentParser
 from typing import Any, Collection
 
@@ -12,6 +13,7 @@ from adapters.plz_query import (
     get_reporoot,
     run_plz_fmt,
 )
+from colorama import Fore
 from domain.build_pkgs.build_pkg import BUILDPkg
 from domain.imports.enricher import ToEnrichedImports
 from domain.imports.known.known import known_dependencies_from_config
@@ -61,9 +63,9 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
 
     if modified_build_file_paths:
         run_plz_fmt(*modified_build_file_paths)
-        LOGGER.info(f"📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.")
+        print(f"{Fore.MAGENTA} 📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.", file=sys.stdout)
     else:
-        LOGGER.info("No BUILD files were modified. Your imports were 👌 already.")
+        print(f"{Fore.GREEN} No BUILD files were modified. Your imports were 👌 already.", file=sys.stdout)
     return
 
 

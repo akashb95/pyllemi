@@ -10,5 +10,6 @@ python_binary(
         "//domain/imports/known",
         "//domain/targets",
         "//domain/targets/plz",
+        "//third_party/python3:colorama",
     ],
 )
