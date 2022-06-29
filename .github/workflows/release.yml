@@ -29,5 +29,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-          pyllemi-py39.pex
-          pyllemi-py310.pex
+            pyllemi-py39.pex
+            pyllemi-py310.pex
