@@ -59,21 +59,19 @@ def resolve_import_type(py_import_path: str, python_moduledir: str) -> ImportTyp
 
     # Finally, check if the import can be of a protobuf-generated file.
     # In Python, all protobuf generated files must be of the form *_pb2.py or *_pb2_grpc.py
-    if (abs_filepath_without_ext.endswith("_pb2") or abs_filepath_without_ext.endswith("pb2_grpc")) and os.path.isfile(
-        f"{abs_filepath_without_ext}.proto"
-    ):
-        return ImportType.PROTOBUF_GEN
+    if abs_filepath_without_ext.endswith("_pb2") or abs_filepath_without_ext.endswith("_pb2_grpc"):
+        candidate_abs_proto_filepath = (
+            f"{abs_filepath_without_ext.removesuffix('_pb2').removesuffix('_pb2_grpc')}.proto"
+        )
+        if os.path.isfile(candidate_abs_proto_filepath):
+            return ImportType.PROTOBUF_GEN
 
     return ImportType.UNKNOWN
 
 
 def to_whatinputs_input(import_: EnrichedImport) -> Optional[list[str]]:
     """
-    Output depends on the EnrichedImport type.
-
-    For ImportType.MODULE, the output is a `.py` file.
-    For ImportType.PACKAGE, the output is a glob matching `**/*.py` under the given (Python) package.
-    For anything else, return None.
+    Output depends on the EnrichedImport's ImportType.
     """
 
     os_path_from_reporoot = import_.import_.replace(".", os.path.sep)
