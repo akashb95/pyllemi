@@ -1,11 +1,12 @@
 import ast
+import os
 import sys
 from unittest import mock, TestCase
 
-from adapters.plz_query import WhatInputsResult
-from domain.imports.enriched_import import EnrichedImport, ImportType
-from domain.plz.target.target import PlzTarget
-from service.dependency.resolver import DependencyResolver
+from adapters.plz_cli.query import WhatInputsResult
+from domain.imports.enriched import EnrichedImport, ImportType
+from domain.plz.target.target import Target
+from service.dependency.resolver import DependencyResolver, convert_os_path_to_import_path
 
 
 class TestDependencyResolver(TestCase):
@@ -31,11 +32,11 @@ class TestDependencyResolver(TestCase):
             nodes_collator=self.mock_nodes_collator,
         )
 
-        deps = dep_resolver.resolve_deps_for_srcs(PlzTarget("//path/to:target"), srcs={"x.py"})
+        deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"x.py"})
         mock_file_open.assert_called_once_with("path/to/x.py", "r")
         self.mock_nodes_collator.collate.assert_called_once_with(code="import colorama", path="path/to/x.py")
         self.mock_enricher.convert.assert_called_once_with(mock_import_node)
-        self.assertEqual({PlzTarget("//third_party/python:colorama")}, deps)
+        self.assertEqual({Target("//third_party/python:colorama")}, deps)
 
         return
 
@@ -62,12 +63,12 @@ class TestDependencyResolver(TestCase):
             nodes_collator=self.mock_nodes_collator,
         )
 
-        deps = dep_resolver.resolve_deps_for_srcs(PlzTarget("//path/to:target"), srcs={"y.py"})
+        deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"y.py"})
         mock_file_open.assert_called_once_with("path/to/y.py", "r")
         self.mock_nodes_collator.collate.assert_called_once_with(code="import custom.module", path="path/to/y.py")
         self.mock_enricher.convert.assert_called_once_with(mock_import_node)
         mock_get_whatinputs.assert_called_once()
-        self.assertEqual({PlzTarget("//custom:target")}, deps)
+        self.assertEqual({Target("//custom:target")}, deps)
 
         return
 
@@ -94,7 +95,7 @@ class TestDependencyResolver(TestCase):
             nodes_collator=self.mock_nodes_collator,
         )
 
-        deps = dep_resolver.resolve_deps_for_srcs(PlzTarget("//path/to:target"), srcs={"z.pyi"})
+        deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"z.pyi"})
         mock_file_open.assert_called_once_with("path/to/z.pyi", "r")
         self.mock_nodes_collator.collate.assert_called_once_with(
             code="import custom.module, path.to.target",
@@ -102,7 +103,7 @@ class TestDependencyResolver(TestCase):
         )
         self.mock_enricher.convert.assert_called_once_with(mock_import_node)
         mock_get_whatinputs.assert_called_once()
-        self.assertEqual({PlzTarget("//custom:target")}, deps)
+        self.assertEqual({Target("//custom:target")}, deps)
 
         return
 
@@ -119,16 +120,16 @@ class TestDependencyResolver(TestCase):
             enricher=self.mock_enricher,
             std_lib_modules=sys.stdlib_module_names,
             available_third_party_module_targets={"//third_party/python:colorama"},
-            known_dependencies={"path.to.x": [PlzTarget("//injected/pkg:target")]},
+            known_dependencies={"path.to.x": [Target("//injected/pkg:target")]},
             nodes_collator=self.mock_nodes_collator,
         )
 
-        deps = dep_resolver.resolve_deps_for_srcs(PlzTarget("//path/to:target"), srcs={"x.py"})
+        deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"x.py"})
         mock_file_open.assert_called_once_with("path/to/x.py", "r")
         self.mock_nodes_collator.collate.assert_called_once_with(code="import colorama", path="path/to/x.py")
         self.mock_enricher.convert.assert_called_once_with(mock_import_node)
         self.assertEqual(
-            {PlzTarget("//third_party/python:colorama"), PlzTarget("//injected/pkg:target")},
+            {Target("//third_party/python:colorama"), Target("//injected/pkg:target")},
             deps,
         )
         return
@@ -142,5 +143,27 @@ class TestDependencyResolver(TestCase):
             known_dependencies={},
             nodes_collator=self.mock_nodes_collator,
         )
-        self.assertEqual(set(), dep_resolver.resolve_deps_for_srcs(PlzTarget("//does/not:matter"), set()))
+        self.assertEqual(set(), dep_resolver.resolve_deps_for_srcs(Target("//does/not:matter"), set()))
+        return
+
+
+class TestConvertOSPathToPyImportPath(TestCase):
+    def test_dirname(self):
+        test_pkg_path = os.path.join("test", "pkg")
+        converted = convert_os_path_to_import_path(test_pkg_path)
+        self.assertEqual("test.pkg", converted)
+        return
+
+    def test_filename(self):
+        test_module_path = os.path.join("test", "pkg", "module.py")
+        converted = convert_os_path_to_import_path(test_module_path)
+        self.assertEqual("test.pkg.module", converted)
+        return
+
+    def test_with_project_root(self):
+        test_module_path = os.path.abspath(os.path.join("root", "project_root", "test", "pkg", "module.py"))
+        converted = convert_os_path_to_import_path(
+            test_module_path, os.path.abspath(os.path.join("root", "project_root"))
+        )
+        self.assertEqual("test.pkg.module", converted)
         return

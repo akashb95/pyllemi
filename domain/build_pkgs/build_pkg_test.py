@@ -3,7 +3,7 @@ from unittest import mock
 
 from domain.build_pkgs.build_pkg import BUILDPkg
 from domain.plz.rule.python import Library, Test
-from domain.plz.target.target import PlzTarget
+from domain.plz.target.target import Target
 from utils.mock_python_library_with_new_build_pkg_test_case import (
     MockPythonLibraryTestCase,
     MockPythonLibraryWithNewBuildPkgTestCase,
@@ -68,7 +68,7 @@ class TestBuildPkgWithNewBuildPkg(MockPythonLibraryWithNewBuildPkgTestCase):
 
         mock_node_to_be_modified: ast.Call = ast.parse(mock_dumped_ast).body[0].value
         mock_build_file_instance.get_existing_ast_python_build_rules.return_value = [mock_node_to_be_modified]
-        build_pkg.resolve_deps_for_targets(lambda plz_target, srcs: {PlzTarget(f"//{self.new_pkg_path}:dep")})
+        build_pkg.resolve_deps_for_targets(lambda plz_target, srcs: {Target(f"//{self.new_pkg_path}:dep")})
         mock_build_file_instance.register_modified_build_rule_to_python_target.assert_called_once_with(
             mock_node_to_be_modified,
             Library(name="name", srcs={"module.py", "stub_module.pyi"}, deps={":dep"}),
@@ -128,7 +128,7 @@ class TestBuildPkgWithExistingBuildFile(MockPythonLibraryTestCase):
         )
         mock_node_to_be_modified: ast.Call = ast.parse(mock_dumped_ast).body[0].value
         mock_build_file_instance.get_existing_ast_python_build_rules.return_value = [mock_node_to_be_modified]
-        build_pkg.resolve_deps_for_targets(lambda plz_target, srcs: {PlzTarget(f"//{self.subpackage_dir}:dep")})
+        build_pkg.resolve_deps_for_targets(lambda plz_target, srcs: {Target(f"//{self.subpackage_dir}:dep")})
         mock_build_file_instance.register_modified_build_rule_to_python_target.assert_called_once_with(
             mock_node_to_be_modified,
             Test(

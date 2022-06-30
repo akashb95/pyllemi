@@ -47,12 +47,9 @@ def get_stdlib_module_names(version: Optional[tuple[int, int]] = None) -> Union[
 
 
 if __name__ == "__main__":
-    import os
-
     VERSIONS = ("2.7", "3.5", "3.6", "3.7", "3.8", "3.9")
 
-    os.makedirs("stdlib")
     for version in VERSIONS:
-        with open(os.path.join("stdlib", version.replace(".", "_") + ".py"), "w") as f:
+        with open(version.replace(".", "_") + ".py", "w") as f:
             f.write("# GENERATED FILE, DO NOT MODIFY\n")
             f.write(f"MODULE_NAMES = {_scrape_standard_libs(version)}\n")

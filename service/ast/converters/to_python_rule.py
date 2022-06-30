@@ -1,16 +1,13 @@
 import ast
-from typing import Optional, Union
+from typing import Optional
 
-from adapters.plz_query import get_print
-from domain.plz.rule.python import Binary, Library, Python, Test
-from domain.plz.rule.rule import Rule, Types
-from domain.plz.target.target import PlzTarget
-from domain.targets.utils import is_ast_node_python_build_rule
-
-BUILD_RULE_KWARG_VALUE_TYPE = Union[bool, int, list, set, str, ast.Call]
+from adapters.plz_cli.query import get_print
+from domain.plz.rule.python import Python, Library, Test, Binary
+from domain.plz.rule.rule import Types
+from domain.plz.target.target import Target
 
 
-def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python:
+def to_python_rule(node: ast.Call, build_pkg_dir: str) -> Python:
     """
 
     :param node:
@@ -26,9 +23,9 @@ def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python
         raise TypeError(f"AST node func is of type {type(node.func).__name__}; expected {type(ast.Name())}")
 
     if node.func.id not in (
-            Types.PYTHON_BINARY.value,
-            Types.PYTHON_LIBRARY.value,
-            Types.PYTHON_TEST.value,
+        Types.PYTHON_BINARY.value,
+        Types.PYTHON_LIBRARY.value,
+        Types.PYTHON_TEST.value,
     ):
         raise ValueError(f"BUILD rule call function is called '{node.func.id}', which is not a supported Python rule")
 
@@ -60,7 +57,7 @@ def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python
                     srcs.add(elt.value)
 
             elif keyword.arg == "srcs":
-                build_target_path = PlzTarget(f"//{build_pkg_dir}:{name}")
+                build_target_path = Target(f"//{build_pkg_dir}:{name}")
                 srcs |= set(get_print(str(build_target_path), "srcs"))
 
             elif keyword.arg == "deps" and isinstance(keyword.value, ast.List):
@@ -95,7 +92,7 @@ def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python
                     srcs.add(elt.value)
 
             elif keyword.arg == "srcs":
-                build_target_path = PlzTarget(f"//{build_pkg_dir}:{name}")
+                build_target_path = Target(f"//{build_pkg_dir}:{name}")
                 srcs |= set(get_print(build_target_path.with_tag("lib"), "srcs"))
 
             elif keyword.arg == "deps" and isinstance(keyword.value, ast.List):
@@ -133,66 +130,3 @@ def from_ast_node_to_python_target(node: ast.Call, build_pkg_dir: str) -> Python
                     deps.add(elt.value)
 
         return Binary(name=name, deps=deps, main=main)
-
-
-# noinspection PyTypeChecker
-def from_ast_module_to_python_build_rule_occurrences(
-    module: ast.Module,
-    build_target: PlzTarget,
-) -> dict[ast.Call, Python]:
-    build_rule_ast_call_to_domain_target: dict[ast.Call, Python] = {}
-    for ast_call in filter(lambda x: is_ast_node_python_build_rule(x), ast.walk(module)):
-        if (target := from_ast_node_to_python_target(ast_call, build_target)) is None:
-            continue
-
-        build_rule_ast_call_to_domain_target[ast_call] = target
-    return build_rule_ast_call_to_domain_target
-
-
-def python_target_to_ast_call_node(t: Rule) -> Optional[ast.Call]:
-    if t.type_ == Types.PYTHON_LIBRARY:
-        return ast.Call(
-            func=ast.Name(id=Types.PYTHON_LIBRARY.value),
-            keywords=kwargs_to_ast_keywords(**t.kwargs),
-            args=[],
-        )
-
-    if t.type_ == Types.PYTHON_TEST:
-        return ast.Call(
-            func=ast.Name(id=Types.PYTHON_TEST.value),
-            keywords=kwargs_to_ast_keywords(**t.kwargs),
-            args=[],
-        )
-
-    if t.type_ == Types.PYTHON_BINARY:
-        return ast.Call(
-            func=ast.Name(id=Types.PYTHON_BINARY.value),
-            keywords=kwargs_to_ast_keywords(**t.kwargs),
-            args=[],
-        )
-
-    return
-
-
-def kwargs_to_ast_keywords(**kwargs) -> list[ast.keyword]:
-    keywords: list[ast.keyword] = []
-    for key, value in kwargs.items():
-        if (keyword := kwarg_to_ast_keyword(key, value)) is not None:
-            keywords.append(keyword)
-    return keywords
-
-
-def kwarg_to_ast_keyword(key: str, value: BUILD_RULE_KWARG_VALUE_TYPE) -> Optional[ast.keyword]:
-    if isinstance(value, list) or isinstance(value, set):
-        values = sorted(list(value))
-        return ast.keyword(
-            arg=key,
-            value=ast.List(elts=[ast.Constant(value=constant_value) for constant_value in values]),
-        )
-    if isinstance(value, str) or isinstance(value, bool) or isinstance(value, int):
-        return ast.keyword(arg=key, value=ast.Constant(value=value))
-    if isinstance(value, ast.Call):
-        return ast.keyword(arg=key, value=value)
-
-    # Note that a value can also be of type dict, but we should never need to write this to a BUILD file from Pyllemi.
-    return

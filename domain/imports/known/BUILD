@@ -8,7 +8,7 @@ python_library(
     ),
     deps = [
         "//common/logger",
-        "//domain/targets",
+        "//domain/plz/target",
         "//third_party/python3:jsonschema",
     ],
 )

@@ -6,8 +6,8 @@ class InvalidPlzTargetError(ValueError):
     pass
 
 
-class PlzTarget:
-    __absolute_target_path_pattern__ = re.compile(r"^//([\w/\-]*):(\w+)$")
+class Target:
+    __absolute_target_path_pattern__ = re.compile(r"^//([\w/\-]*):([\w\-]+)$")
     __simple_absolute_target_path_pattern__ = re.compile(r"^//([\w/\-]+)$")
     __relative_target_path_pattern__ = re.compile(r"^:([\w\-]+)")
 
@@ -39,7 +39,7 @@ class PlzTarget:
         else:
             raise InvalidPlzTargetError(f"{target} does not match the format of a BUILD target path")
 
-    def __eq__(self, other: "PlzTarget") -> bool:
+    def __eq__(self, other: "Target") -> bool:
         return self.canonicalise() == other.canonicalise()
 
     def __hash__(self):

@@ -3,8 +3,9 @@ python_binary(
     main = "main.py",
     shebang = "/usr/bin/env python3.9",
     deps = [
-        "//adapters",
+        "//adapters/plz_cli",
         "//common/logger",
+        "//common",
         "//domain/build_pkgs",
         "//domain/imports",
         "//domain/imports/known",
@@ -19,8 +20,9 @@ python_binary(
     main = "main.py",
     shebang = "/usr/bin/env python3.10",
     deps = [
-        "//adapters",
+        "//adapters/plz_cli",
         "//common/logger",
+        "//common",
         "//domain/build_pkgs",
         "//domain/imports",
         "//domain/imports/known",

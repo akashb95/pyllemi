@@ -3,8 +3,8 @@ import os.path
 from dataclasses import dataclass
 from typing import Collection, Iterator
 
-from domain.imports.common import IMPORT_NODE_TYPE
-from domain.imports.enriched_import import EnrichedImport, ImportType, resolve_import_type
+from domain.imports.common import AST_IMPORT_NODE_TYPE
+from domain.imports.enriched import EnrichedImport, ImportType, resolve_import_type
 
 
 @dataclass
@@ -15,7 +15,7 @@ class ToEnrichedImports:
     # Required when import path takes form of <python_moduledir>.module, e.g. `import third_party.python3.numpy`
     python_moduledir: str
 
-    def convert(self, node: IMPORT_NODE_TYPE, *, pyfile_path: str = "") -> Iterator[list[EnrichedImport]]:
+    def convert(self, node: AST_IMPORT_NODE_TYPE, *, pyfile_path: str = "") -> Iterator[list[EnrichedImport]]:
         if isinstance(node, ast.Import):
             yield self._import_node(node)
 
@@ -30,7 +30,7 @@ class ToEnrichedImports:
         else:
             raise TypeError(f"can only transform nodes of type Import and ImportFrom; got {type(node).__name__}")
 
-    def convert_all(self, nodes: Collection[IMPORT_NODE_TYPE], *, pyfile_path: str = "") -> list[EnrichedImport]:
+    def convert_all(self, nodes: Collection[AST_IMPORT_NODE_TYPE], *, pyfile_path: str = "") -> list[EnrichedImport]:
         imports: list[EnrichedImport] = []
         for node in nodes:
             for import_path in self.convert(node, pyfile_path=pyfile_path):

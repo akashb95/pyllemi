@@ -3,12 +3,12 @@ import logging
 import os.path
 from typing import Callable, Collection, Optional, Any
 
+import service.ast.converters.to_python_rule
 from adapters.os.new_build_pkg_creator import NewBuildPkgCreator
 from common.logger.logger import setup_logger
 from domain.build_files.build_file import BUILDFile
 from domain.plz.rule.python import Library, Test
-from domain.plz.target.target import PlzTarget
-from service.ast import converters as target_converters
+from domain.plz.target.target import Target
 
 
 class BUILDPkg:
@@ -65,16 +65,16 @@ class BUILDPkg:
                 self.write_to_build_file()
         return
 
-    def resolve_deps_for_targets(self, deps_resolver_fn: Callable[[PlzTarget, set[str]], set[PlzTarget]]) -> None:
+    def resolve_deps_for_targets(self, deps_resolver_fn: Callable[[Target, set[str]], set[Target]]) -> None:
         if not self._build_file.has_modifiable_nodes:
             return
 
         for node in self._build_file.get_existing_ast_python_build_rules():
-            as_python_target = target_converters.from_ast_node_to_python_target(node, self._dir_path)
+            as_python_target = service.ast.converters.to_python_rule.to_python_rule(node, self._dir_path)
             self._logger.debug(f"Found target in {self._this_pkg_build_file_path}: {as_python_target}")
 
             resolved_deps = deps_resolver_fn(
-                PlzTarget(f"//{self._dir_path}:{as_python_target['name']}"),
+                Target(f"//{self._dir_path}:{as_python_target['name']}"),
                 # Only a python_binary target has the main attribute; all other Python targets will have srcs.
                 # The occurrence of the 2 different attributes are mutually exclusive.
                 as_python_target["srcs"] or [as_python_target["main"]],

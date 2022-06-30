@@ -2,11 +2,11 @@ import ast
 import logging
 from typing import Iterator
 
-import service.ast.converters as ast_converters
-import service.ast.converters as target_converters
 from common.logger.logger import setup_logger
 from domain.plz.rule import python as domain_target
 from domain.targets.utils import is_ast_node_python_build_rule
+from service.ast.converters import from_python_rule
+from service.ast.converters.common import BUILD_RULE_KWARG_VALUE_TYPE, kwarg_to_ast_keyword
 
 
 class BUILDFile:
@@ -61,7 +61,7 @@ class BUILDFile:
 
     def _add_new_targets_to_ast(self):
         for new_target in self._new_targets:
-            if (target_as_ast_call := target_converters.python_target_to_ast_call_node(new_target)) is not None:
+            if (target_as_ast_call := from_python_rule.to_ast_call_node(new_target)) is not None:
                 self._ast_repr.body.append(ast.Expr(value=target_as_ast_call))
         return
 
@@ -75,10 +75,10 @@ class BUILDFile:
 
 def _update_ast_call_keywords(
     node: ast.Call,
-    key_to_value: dict[str, ast_converters.BUILD_RULE_KWARG_VALUE_TYPE],
+    key_to_value: dict[str, BUILD_RULE_KWARG_VALUE_TYPE],
 ) -> None:
     for i, k in enumerate(node.keywords):
         if k.arg in key_to_value:
-            k.value = ast_converters.kwarg_to_ast_keyword(k.arg, key_to_value[k.arg]).value
+            k.value = kwarg_to_ast_keyword(k.arg, key_to_value[k.arg]).value
 
     return

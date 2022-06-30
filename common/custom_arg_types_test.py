@@ -3,7 +3,7 @@ import os
 import uuid
 from unittest import TestCase
 
-from adapters.custom_arg_types import existing_file_arg_type, existing_dir_arg_type
+from common.custom_arg_types import existing_file_arg_type, existing_dir_arg_type
 
 
 class TestExistingFileArgType(TestCase):

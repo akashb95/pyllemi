@@ -1,17 +1,29 @@
 import os
 from typing import Collection, Optional
 
-from adapters.plz_query import get_whatinputs
+from adapters.plz_cli.query import get_whatinputs
 from common.logger.logger import setup_logger
-from converters.converters import convert_os_path_to_import_path
-from domain.imports.enriched_import import to_whatinputs_input, EnrichedImport
-from domain.imports.enricher import ToEnrichedImports
+from domain.imports.enriched import to_whatinputs_input, EnrichedImport
 from domain.imports.nodes_collator import NodesCollator
-from domain.plz.target.target import PlzTarget
+from domain.plz.target.target import Target
+from service.ast.converters.to_enriched_imports import ToEnrichedImports
 
 
 def get_top_level_module_name(abs_import_path: str) -> str:
     return abs_import_path.split(".", maxsplit=1)[0] if "." in abs_import_path else abs_import_path
+
+
+def convert_os_path_to_import_path(os_path: str, abs_path_to_project_root: str = "") -> str:
+    return (
+        # Discard file extensions, if any, e.g. 'py', 'pyi', etc.
+        os.path.splitext(os_path)[0]
+        # Path to Python module from project root.
+        .removeprefix(abs_path_to_project_root)
+        # Remove any leading path separators.
+        .lstrip(os.path.sep)
+        # Turn OS path to Python path.
+        .replace(os.path.sep, ".")
+    )
 
 
 class DependencyResolver:
@@ -22,7 +34,7 @@ class DependencyResolver:
         enricher: ToEnrichedImports,
         std_lib_modules: Collection[str],
         available_third_party_module_targets: set[str],
-        known_dependencies: dict[str, Collection[PlzTarget]],
+        known_dependencies: dict[str, Collection[Target]],
         nodes_collator: NodesCollator,
     ):
         self._logger = setup_logger(__name__)
@@ -38,11 +50,11 @@ class DependencyResolver:
         self._whatinputs_inputs_for_this_target: set[str] = set()
         return
 
-    def resolve_deps_for_srcs(self, srcs_plz_target: PlzTarget, srcs: set[str]) -> set[PlzTarget]:
+    def resolve_deps_for_srcs(self, srcs_plz_target: Target, srcs: set[str]) -> set[Target]:
         if len(srcs) == 0:
             return set()
 
-        import_targets: set[PlzTarget] = set()
+        import_targets: set[Target] = set()
         for src in srcs:
             self._logger.debug(
                 f"Starting to resolve dependencies for {os.path.join(srcs_plz_target.build_pkg_dir, src)}"
@@ -74,7 +86,7 @@ class DependencyResolver:
         import_targets.discard(srcs_plz_target)
         return import_targets
 
-    def _resolve_dependencies_for_enriched_import(self, enriched_import: EnrichedImport) -> Optional[set[PlzTarget]]:
+    def _resolve_dependencies_for_enriched_import(self, enriched_import: EnrichedImport) -> Optional[set[Target]]:
         # Filter out stdlib modules.
         top_level_module_name = get_top_level_module_name(enriched_import.import_)
         if top_level_module_name in self.std_lib_modules:
@@ -84,7 +96,7 @@ class DependencyResolver:
         # Resolve 3rd-party library targets.
         possible_third_party_module_target = f"//{self.python_moduledir}:{top_level_module_name}".replace(".", "/")
         if possible_third_party_module_target in self.available_third_party_module_targets:
-            return {PlzTarget(possible_third_party_module_target)}
+            return {Target(possible_third_party_module_target)}
 
         self._logger.debug(f"Found import of a custom lib module: {enriched_import.import_}")
 
@@ -96,10 +108,10 @@ class DependencyResolver:
 
         return None
 
-    def _query_whatinputs_for_whatinputs_batch(self) -> set[PlzTarget]:
+    def _query_whatinputs_for_whatinputs_batch(self) -> set[Target]:
         self._logger.debug(f"running whatinputs on {self._whatinputs_inputs_for_this_target}")
 
         whatinputs_result = get_whatinputs(list(self._whatinputs_inputs_for_this_target))
         if len(whatinputs_result.targetless_paths) > 0:
             self._logger.error(f"Could not find targets for imports: {', '.join(whatinputs_result.targetless_paths)}")
-        return set(map(PlzTarget, whatinputs_result.plz_targets))
+        return set(map(Target, whatinputs_result.plz_targets))

@@ -1,24 +1,25 @@
-package(default_visibility=["PUBLIC"])
-
 python_library(
-    name = "ast",
+    name = "converters",
     srcs = glob(
         ["*.py"],
         exclude = ["*_test.py"],
     ),
     deps = [
-        "//adapters",
+        "//adapters/plz_cli",
+        "//domain/imports",
         "//domain/plz/rule",
         "//domain/plz/target",
-        "//domain/targets",
     ],
+    visibility=["PUBLIC"],
 )
 
 python_test(
-    name = "ast_test",
+    name = "converters_test",
     srcs = glob(["*_test.py"]),
     deps = [
-        ":ast",
+        ":converters",
+        "//domain/imports",
         "//domain/plz/rule",
+        "//utils",
     ],
 )

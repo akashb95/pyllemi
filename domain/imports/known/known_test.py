@@ -4,15 +4,15 @@ from unittest import TestCase
 import jsonschema.exceptions
 
 from domain.imports.known.known import known_dependencies_from_config
-from domain.plz.target.target import PlzTarget, InvalidPlzTargetError
+from domain.plz.target.target import Target, InvalidPlzTargetError
 
 
 class TestKnown(TestCase):
     def test_from_config(self):
         self.assertEqual(
             {
-                "pkg.subpkg.module": [PlzTarget("//pkg/subpkg:module")],
-                "pkg.another_subpkg.module": [PlzTarget("//pkg/another_subpkg")],
+                "pkg.subpkg.module": [Target("//pkg/subpkg:module")],
+                "pkg.another_subpkg.module": [Target("//pkg/another_subpkg")],
             },
             known_dependencies_from_config(
                 {

@@ -5,8 +5,7 @@ import sys
 from argparse import ArgumentParser
 from typing import Any, Collection
 
-from adapters.custom_arg_types import existing_dir_arg_type
-from adapters.plz_query import (
+from adapters.plz_cli.query import (
     get_build_file_names,
     get_third_party_module_targets,
     get_python_moduledir,
@@ -14,12 +13,13 @@ from adapters.plz_query import (
     run_plz_fmt,
 )
 from colorama import Fore
+from common.custom_arg_types import existing_dir_arg_type
 from domain.build_pkgs.build_pkg import BUILDPkg
-from domain.imports.enricher import ToEnrichedImports
 from domain.imports.known.known import known_dependencies_from_config
 from domain.imports.nodes_collator import NodesCollator
-from domain.imports.stdlib_modules import get_stdlib_module_names
-from domain.plz.target.target import PlzTarget
+from domain.imports.stdlib.stdlib_modules import get_stdlib_module_names
+from domain.plz.target.target import Target
+from service.ast.converters.to_enriched_imports import ToEnrichedImports
 from service.dependency.resolver import DependencyResolver
 
 
@@ -36,7 +36,7 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
     third_party_modules_targets: set[str] = set(get_third_party_module_targets())
     std_lib_modules: set[str] = get_stdlib_module_names()
     build_file_names: list[str] = get_build_file_names()
-    known_dependencies: dict[str, Collection[PlzTarget]] = known_dependencies_from_config(config)
+    known_dependencies: dict[str, Collection[Target]] = known_dependencies_from_config(config)
 
     build_pkgs: list[BUILDPkg] = []
     for build_pkg_dir_path in build_pkg_dir_paths:

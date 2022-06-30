@@ -1,7 +1,7 @@
 package(default_visibility = ["PUBLIC"])
 
 python_library(
-    name = "adapters",
+    name = "common",
     srcs = glob(
         ["*.py"],
         exclude = ["*_test.py"],
@@ -10,7 +10,7 @@ python_library(
 )
 
 python_test(
-    name = "adapters_test",
+    name = "common_test",
     srcs = glob(["*_test.py"]),
-    deps = [":adapters"],
+    deps = [":common"],
 )

@@ -7,11 +7,11 @@ python_library(
         exclude = ["*_test.py"],
     ),
     deps = [
-        "//adapters",
+        "//adapters/plz_cli",
         "//common/logger",
-        "//converters",
         "//domain/imports",
         "//domain/plz/target",
+        "//service/ast/converters",
     ],
 )
 
@@ -20,7 +20,7 @@ python_test(
     srcs = glob(["*_test.py"]),
     deps = [
         ":dependency",
-        "//adapters",
+        "//adapters/plz_cli",
         "//domain/imports",
         "//domain/plz/target",
     ],
