@@ -9,7 +9,7 @@ class InvalidPlzTargetError(ValueError):
 class Target:
     __absolute_target_path_pattern__ = re.compile(r"^//([\w/\-]*):([\w\-]+)$")
     __simple_absolute_target_path_pattern__ = re.compile(r"^//([\w/\-]+)$")
-    __relative_target_path_pattern__ = re.compile(r"^:([\w\-]+)")
+    __relative_target_path_pattern__ = re.compile(r"^:([\w\-]+)$")
 
     def __init__(self, target: str):
         absolute_target_match = re.match(self.__absolute_target_path_pattern__, target)

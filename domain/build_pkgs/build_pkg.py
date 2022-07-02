@@ -70,7 +70,7 @@ class BUILDPkg:
             return
 
         for node in self._build_file.get_existing_ast_python_build_rules():
-            as_python_target = service.ast.converters.to_python_rule.to_python_rule(node, self._dir_path)
+            as_python_target = service.ast.converters.to_python_rule.convert(node, self._dir_path)
             self._logger.debug(f"Found target in {self._this_pkg_build_file_path}: {as_python_target}")
 
             resolved_deps = deps_resolver_fn(

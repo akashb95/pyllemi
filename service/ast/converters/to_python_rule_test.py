@@ -2,7 +2,7 @@ import ast
 from unittest import TestCase, mock
 
 from domain.plz.rule.python import Library, Test, Binary
-from service.ast.converters.to_python_rule import to_python_rule
+from service.ast.converters.to_python_rule import convert
 
 
 class ToPythonRuleTest(TestCase):
@@ -10,7 +10,7 @@ class ToPythonRuleTest(TestCase):
         input_ast_node = ast.parse("python_library(name='lib', srcs=['input.py'], deps=[':dep'])")
         self.assertEqual(
             Library(name="lib", srcs={"input.py"}, deps={":dep"}),
-            to_python_rule(input_ast_node.body[0].value, "path/to/lib"),
+            convert(input_ast_node.body[0].value, "path/to/lib"),
         )
         return
 
@@ -18,7 +18,7 @@ class ToPythonRuleTest(TestCase):
         input_ast_node = ast.parse("python_test(name='test', srcs=['lib_test.py'], deps=[':lib'])")
         self.assertEqual(
             Test(name="test", srcs={"lib_test.py"}, deps={":lib"}),
-            to_python_rule(input_ast_node.body[0].value, "//path/to/test"),
+            convert(input_ast_node.body[0].value, "//path/to/test"),
         )
         return
 
@@ -26,7 +26,7 @@ class ToPythonRuleTest(TestCase):
         input_ast_node = ast.parse("python_binary(name='bin', main='main.py', deps=[':dep'])")
         self.assertEqual(
             Binary(name="bin", main="main.py", deps={":dep"}),
-            to_python_rule(input_ast_node.body[0].value, "//path/to/bin"),
+            convert(input_ast_node.body[0].value, "//path/to/bin"),
         )
         return
 
@@ -37,7 +37,7 @@ class ToPythonRuleTest(TestCase):
             mock_plz_query_print.return_value = ["__init__.py", "module.py"]
             self.assertEqual(
                 Library(name="target", srcs={"__init__.py", "module.py"}, deps=set()),
-                to_python_rule(input_ast_node.body[0].value, "path/to"),
+                convert(input_ast_node.body[0].value, "path/to"),
             )
             mock_plz_query_print.assert_called_once_with("//path/to:target", "srcs")
 
@@ -48,7 +48,7 @@ class ToPythonRuleTest(TestCase):
             mock_plz_query_print.return_value = ["module_test.py"]
             self.assertEqual(
                 Test(name="test", srcs={"module_test.py"}, deps=set()),
-                to_python_rule(input_ast_node.body[0].value, "path/to"),
+                convert(input_ast_node.body[0].value, "path/to"),
             )
             mock_plz_query_print.assert_called_once_with("//path/to:_test#lib", "srcs")
         return
@@ -57,7 +57,7 @@ class ToPythonRuleTest(TestCase):
         self.assertRaisesRegex(
             TypeError,
             "AST node is of type Module; expected Call",
-            to_python_rule,
+            convert,
             ast.Module(),
             "//does/not:matter",
         )
@@ -67,7 +67,7 @@ class ToPythonRuleTest(TestCase):
         self.assertRaisesRegex(
             ValueError,
             "BUILD rule call function is called 'not_valid', which is not a supported Python rule",
-            to_python_rule,
+            convert,
             ast.parse("not_valid(name='target', srcs=glob(['*.py'], exclude=['*_test.py']))").body[0].value,
             "//does/not:matter",
         )

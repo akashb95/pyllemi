@@ -61,7 +61,7 @@ class BUILDFile:
 
     def _add_new_targets_to_ast(self):
         for new_target in self._new_targets:
-            if (target_as_ast_call := from_python_rule.to_ast_call_node(new_target)) is not None:
+            if (target_as_ast_call := from_python_rule.convert(new_target)) is not None:
                 self._ast_repr.body.append(ast.Expr(value=target_as_ast_call))
         return
 

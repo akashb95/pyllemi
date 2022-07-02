@@ -7,7 +7,7 @@ from domain.plz.rule.rule import Types
 from domain.plz.target.target import Target
 
 
-def to_python_rule(node: ast.Call, build_pkg_dir: str) -> Python:
+def convert(node: ast.Call, build_pkg_dir: str) -> Python:
     """
 
     :param node:
