@@ -1,12 +1,12 @@
 from unittest import TestCase
 
-from domain.imports.nodes_collator import NodesCollator
+from service.python_import.node_collector import NodeCollector
 
 
 class TestNodesCollator(TestCase):
     @classmethod
     def setUp(cls):
-        cls.collator = NodesCollator()
+        cls.collator = NodeCollector()
 
     def test_import_nodes(self):
         code = """

@@ -3,11 +3,11 @@ from typing import Collection, Optional
 
 from adapters.plz_cli.query import get_whatinputs
 from common.logger.logger import setup_logger
-from domain.imports.nodes_collator import NodesCollator
 from domain.plz.target.target import Target
 from domain.python_import import enriched as enriched_import
 from service.ast.converters.to_enriched_imports import ToEnrichedImports
 from service.python_import.enriched import to_whatinputs_input
+from service.python_import.node_collector import NodeCollector
 
 
 def get_top_level_module_name(abs_import_path: str) -> str:
@@ -36,7 +36,7 @@ class DependencyResolver:
         std_lib_modules: Collection[str],
         available_third_party_module_targets: set[str],
         known_dependencies: dict[str, Collection[Target]],
-        nodes_collator: NodesCollator,
+        nodes_collator: NodeCollector,
     ):
         self._logger = setup_logger(__name__)
 

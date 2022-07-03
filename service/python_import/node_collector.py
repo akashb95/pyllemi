@@ -6,9 +6,9 @@ from common.logger.logger import setup_logger
 from domain.imports.common import AST_IMPORT_NODE_TYPE
 
 
-class NodesCollator:
+class NodeCollector:
     """
-    Collates AST nodes responsible for imports from the given path.
+    Collects AST nodes responsible for imports from the given path.
     """
 
     def __init__(self):

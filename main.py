@@ -16,11 +16,11 @@ from colorama import Fore
 from common.custom_arg_types import existing_dir_arg_type
 from domain.build_pkgs.build_pkg import BUILDPkg
 from domain.imports.known.known import known_dependencies_from_config
-from domain.imports.nodes_collator import NodesCollator
 from domain.imports.stdlib.stdlib_modules import get_stdlib_module_names
 from domain.plz.target.target import Target
 from service.ast.converters.to_enriched_imports import ToEnrichedImports
 from service.dependency.resolver import DependencyResolver
+from service.python_import.node_collector import NodeCollector
 
 
 # noinspection PyShadowingNames
@@ -49,7 +49,7 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
         std_lib_modules=std_lib_modules,
         available_third_party_module_targets=third_party_modules_targets,
         known_dependencies=known_dependencies,
-        nodes_collator=NodesCollator(),
+        nodes_collator=NodeCollector(),
     )
 
     modified_build_file_paths: list[str] = []

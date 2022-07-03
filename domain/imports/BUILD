@@ -6,19 +6,4 @@ python_library(
         ["*.py"],
         exclude = ["*_test.py"],
     ),
-    deps = [
-        "//common/logger",
-        "//domain/imports/stdlib",
-        "//domain/python_import",
-    ],
-)
-
-python_test(
-    name = "imports_test",
-    srcs = glob(["*_test.py"]),
-    deps = [
-        ":imports",
-        "//utils",
-        "//domain/python_import",
-    ],
 )
