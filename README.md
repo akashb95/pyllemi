@@ -67,10 +67,11 @@ Create a `remote_file` BUILD rule to download the `.pex` binary from Github.
 ```python
 # tools/BUILD
 
-PYLLEMI_VERSION = "v0.8.3"
+PYLLEMI_VERSION = "v0.8.5"
+PYTHON_VERSION = "39"  # Alternative: "310"
 remote_file(
     name="pyllemi",
-    url=f"https://github.com/akashb95/pyllemi/releases/download/{PYLLEMI_VERSION}/pyllemi.pex",
+    url=f"https://github.com/akashb95/pyllemi/releases/download/{PYLLEMI_VERSION}/pyllemi-py{PYTHON_VERSION}.pex",
     extract=False,
     binary=True,
 )
@@ -89,5 +90,5 @@ cmd = run --wd=. //third_party/tools:pyllemi -- ./ -v
 
 Tested on Python 3.9 and 3.10.
 
-The binary contains the shebang `#!/usr/bin/env python3` - Pyllemi will be run using the version of Python3 which `env`
-points to.
+The only difference between the `pyllemi-py39.pex` and `pyllemi-py310.pex` is that the binary contains a different
+shebang to use different versions of Python available in `env`. 
