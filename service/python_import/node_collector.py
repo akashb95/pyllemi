@@ -3,7 +3,7 @@ from logging import DEBUG
 from typing import Iterator, List
 
 from common.logger.logger import setup_logger
-from domain.imports.common import AST_IMPORT_NODE_TYPE
+from domain.python_import.common import AST_IMPORT_NODE_TYPE
 
 
 class NodeCollector:

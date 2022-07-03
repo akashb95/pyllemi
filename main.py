@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import sys
@@ -14,10 +13,11 @@ from adapters.plz_cli.query import (
 )
 from colorama import Fore
 from common.custom_arg_types import existing_dir_arg_type
+from config import known_dependencies
+from config.config import unmarshal as unmarshal_config
 from domain.build_pkgs.build_pkg import BUILDPkg
-from domain.imports.known.known import known_dependencies_from_config
-from domain.imports.stdlib.stdlib_modules import get_stdlib_module_names
 from domain.plz.target.target import Target
+from domain.python_import.stdlib.stdlib_modules import get_stdlib_module_names
 from service.ast.converters.to_enriched_imports import ToEnrichedImports
 from service.dependency.resolver import DependencyResolver
 from service.python_import.node_collector import NodeCollector
@@ -36,7 +36,7 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
     third_party_modules_targets: set[str] = set(get_third_party_module_targets())
     std_lib_modules: set[str] = get_stdlib_module_names()
     build_file_names: list[str] = get_build_file_names()
-    known_dependencies: dict[str, Collection[Target]] = known_dependencies_from_config(config)
+    known_deps: dict[str, Collection[Target]] = known_dependencies.get_from_config(config)
 
     build_pkgs: list[BUILDPkg] = []
     for build_pkg_dir_path in build_pkg_dir_paths:
@@ -48,7 +48,7 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
         enricher=ToEnrichedImports(get_reporoot(), python_moduledir),
         std_lib_modules=std_lib_modules,
         available_third_party_module_targets=third_party_modules_targets,
-        known_dependencies=known_dependencies,
+        known_dependencies=known_deps,
         nodes_collator=NodeCollector(),
     )
 
@@ -80,21 +80,6 @@ def to_relative_path_from_reporoot(path: str) -> str:
     return without_reporoot_prefix.removeprefix(os.path.sep)
 
 
-def read_config_file(path: str) -> dict[str, Any]:
-    if not os.path.isfile(path):
-        return {}
-
-    contents: str
-    with open(path, "r") as config_file:
-        contents = config_file.read()
-
-    try:
-        return json.loads(contents)
-    except json.JSONDecodeError as e:
-        LOGGER.critical("Could not read config file", exc_info=e)
-        raise e
-
-
 if __name__ == "__main__":
     import time
     from common.logger.logger import setup_logger
@@ -120,7 +105,7 @@ if __name__ == "__main__":
 
     LOGGER.debug(f"resolving imports for {{{', '.join(build_pkg_dirs)}}}; cwd: {os.getcwd()}")
 
-    config = read_config_file(".pyllemi.json")
+    config = unmarshal_config(".pyllemi.json")
 
     start_time = time.time()
     run(build_pkg_dirs, config)

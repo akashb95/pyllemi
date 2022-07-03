@@ -3,8 +3,8 @@ import os.path
 from dataclasses import dataclass
 from typing import Collection, Iterator
 
-from domain.imports.common import AST_IMPORT_NODE_TYPE
 from domain.python_import import enriched as enriched_import
+from domain.python_import.common import AST_IMPORT_NODE_TYPE
 from service.python_import.enriched import resolve_import_type
 
 
