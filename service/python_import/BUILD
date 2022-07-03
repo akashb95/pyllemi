@@ -1,29 +1,23 @@
 package(default_visibility = ["PUBLIC"])
 
 python_library(
-    name = "dependency",
+    name = "imports",
     srcs = glob(
         ["*.py"],
         exclude = ["*_test.py"],
     ),
     deps = [
-        "//adapters/plz_cli",
         "//common/logger",
-        "//domain/imports",
-        "//domain/plz/target",
         "//domain/python_import",
-        "//service/ast/converters",
-        "//service/python_import:imports",
     ],
 )
 
 python_test(
-    name = "dependency_test",
+    name = "imports_test",
     srcs = glob(["*_test.py"]),
     deps = [
-        ":dependency",
-        "//adapters/plz_cli",
-        "//domain/plz/target",
+        ":imports",
         "//domain/python_import",
+        "//utils",
     ],
 )

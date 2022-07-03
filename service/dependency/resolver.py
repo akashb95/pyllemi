@@ -3,10 +3,11 @@ from typing import Collection, Optional
 
 from adapters.plz_cli.query import get_whatinputs
 from common.logger.logger import setup_logger
-from domain.imports.enriched import to_whatinputs_input, EnrichedImport
 from domain.imports.nodes_collator import NodesCollator
 from domain.plz.target.target import Target
+from domain.python_import import enriched as enriched_import
 from service.ast.converters.to_enriched_imports import ToEnrichedImports
+from service.python_import.enriched import to_whatinputs_input
 
 
 def get_top_level_module_name(abs_import_path: str) -> str:
@@ -86,7 +87,9 @@ class DependencyResolver:
         import_targets.discard(srcs_plz_target)
         return import_targets
 
-    def _resolve_dependencies_for_enriched_import(self, enriched_import: EnrichedImport) -> Optional[set[Target]]:
+    def _resolve_dependencies_for_enriched_import(
+        self, enriched_import: enriched_import.Import
+    ) -> Optional[set[Target]]:
         # Filter out stdlib modules.
         top_level_module_name = get_top_level_module_name(enriched_import.import_)
         if top_level_module_name in self.std_lib_modules:

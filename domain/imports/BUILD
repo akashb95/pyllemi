@@ -9,6 +9,7 @@ python_library(
     deps = [
         "//common/logger",
         "//domain/imports/stdlib",
+        "//domain/python_import",
     ],
 )
 
@@ -18,5 +19,6 @@ python_test(
     deps = [
         ":imports",
         "//utils",
+        "//domain/python_import",
     ],
 )

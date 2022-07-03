@@ -4,8 +4,8 @@ import sys
 from unittest import mock, TestCase
 
 from adapters.plz_cli.query import WhatInputsResult
-from domain.imports.enriched import EnrichedImport, ImportType
 from domain.plz.target.target import Target
+from domain.python_import import enriched as enriched_import
 from service.dependency.resolver import DependencyResolver, convert_os_path_to_import_path
 
 
@@ -21,7 +21,9 @@ class TestDependencyResolver(TestCase):
             mock_import_node := ast.Import(names=[ast.Name(name="colorama")])
         ]
         mock_file_open.return_value.__enter__.return_value.read.return_value = "import colorama"
-        self.mock_enricher.convert.return_value = [[EnrichedImport("colorama", ImportType.THIRD_PARTY_MODULE)]]
+        self.mock_enricher.convert.return_value = [
+            [enriched_import.Import("colorama", enriched_import.Type.THIRD_PARTY_MODULE)]
+        ]
 
         dep_resolver = DependencyResolver(
             python_moduledir="third_party.python",
@@ -51,7 +53,9 @@ class TestDependencyResolver(TestCase):
             mock_import_node := ast.Import(names=[ast.Name(name="custom.module")])
         ]
         mock_file_open.return_value.__enter__.return_value.read.return_value = "import custom.module"
-        self.mock_enricher.convert.return_value = [[EnrichedImport("custom.module", ImportType.MODULE)]]
+        self.mock_enricher.convert.return_value = [
+            [enriched_import.Import("custom.module", enriched_import.Type.MODULE)]
+        ]
         mock_get_whatinputs.return_value = WhatInputsResult({"//custom:target"}, set())
 
         dep_resolver = DependencyResolver(
@@ -83,7 +87,7 @@ class TestDependencyResolver(TestCase):
             mock_import_node := ast.Import(names=[ast.Name(name="custom.module")])
         ]
         mock_file_open.return_value.__enter__.return_value.read.return_value = "import custom.module, path.to.target"
-        self.mock_enricher.convert.return_value = [[EnrichedImport("custom.module", ImportType.STUB)]]
+        self.mock_enricher.convert.return_value = [[enriched_import.Import("custom.module", enriched_import.Type.STUB)]]
         mock_get_whatinputs.return_value = WhatInputsResult({"//path/to:target", "//custom:target"}, set())
 
         dep_resolver = DependencyResolver(
@@ -113,7 +117,9 @@ class TestDependencyResolver(TestCase):
             mock_import_node := ast.Import(names=[ast.Name(name="colorama")])
         ]
         mock_file_open.return_value.__enter__.return_value.read.return_value = "import colorama"
-        self.mock_enricher.convert.return_value = [[EnrichedImport("colorama", ImportType.THIRD_PARTY_MODULE)]]
+        self.mock_enricher.convert.return_value = [
+            [enriched_import.Import("colorama", enriched_import.Type.THIRD_PARTY_MODULE)]
+        ]
 
         dep_resolver = DependencyResolver(
             python_moduledir="third_party.python",

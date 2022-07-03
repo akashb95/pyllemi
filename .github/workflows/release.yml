@@ -1,4 +1,4 @@
-name: Release .pex
+name: Release
 
 on:
   push:

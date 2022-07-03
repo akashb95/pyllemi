@@ -2,7 +2,7 @@ import ast
 import os
 from collections import namedtuple
 
-from domain.imports.enriched import EnrichedImport, ImportType
+from domain.python_import import enriched as enriched_import
 from service.ast.converters.to_enriched_imports import ToEnrichedImports
 from utils.mock_python_library_test_case import MockPythonLibraryTestCase
 
@@ -26,7 +26,10 @@ class TestToImportPaths(MockPythonLibraryTestCase):
     def test_import_nodes(self):
         node = ast.Import(names=[ast.alias(name="numpy.random", asname="rand"), ast.alias(name="os")])
         self.assertEqual(
-            [EnrichedImport("numpy.random", ImportType.UNKNOWN), EnrichedImport("os", ImportType.UNKNOWN)],
+            [
+                enriched_import.Import("numpy.random", enriched_import.Type.UNKNOWN),
+                enriched_import.Import("os", enriched_import.Type.UNKNOWN),
+            ],
             self.transformer.convert_all([node]),
         )
         return
@@ -37,7 +40,7 @@ class TestToImportPaths(MockPythonLibraryTestCase):
         )
 
         self.assertEqual(
-            [EnrichedImport("numpy", ImportType.THIRD_PARTY_MODULE)],
+            [enriched_import.Import("numpy", enriched_import.Type.THIRD_PARTY_MODULE)],
             self.transformer.convert_all([node]),
         )
         return
@@ -50,7 +53,7 @@ class TestToImportPaths(MockPythonLibraryTestCase):
         )
 
         self.assertEqual(
-            [EnrichedImport("numpy", ImportType.THIRD_PARTY_MODULE)],
+            [enriched_import.Import("numpy", enriched_import.Type.THIRD_PARTY_MODULE)],
             self.transformer.convert_all([node]),
         )
         return
@@ -65,7 +68,11 @@ class TestToImportPaths(MockPythonLibraryTestCase):
                     level=0,
                     names=[ast.alias(name="test_module_1")],
                 ),
-                expected_output=[EnrichedImport(f"{self.test_dir}.test_subpackage.test_module_1", ImportType.MODULE)],
+                expected_output=[
+                    enriched_import.Import(
+                        f"{self.test_dir}.test_subpackage.test_module_1", enriched_import.Type.MODULE
+                    )
+                ],
             ),
             SubTest(
                 name="import subpackage from package",
@@ -74,7 +81,9 @@ class TestToImportPaths(MockPythonLibraryTestCase):
                     level=0,
                     names=[ast.alias(name="test_subpackage")],
                 ),
-                expected_output=[EnrichedImport(f"{self.test_dir}.test_subpackage", ImportType.PACKAGE)],
+                expected_output=[
+                    enriched_import.Import(f"{self.test_dir}.test_subpackage", enriched_import.Type.PACKAGE)
+                ],
             ),
             SubTest(
                 name="import object from module",
@@ -83,7 +92,7 @@ class TestToImportPaths(MockPythonLibraryTestCase):
                     level=0,
                     names=[ast.alias(name="Object")],
                 ),
-                expected_output=[EnrichedImport(f"{self.test_dir}.test_module_0", ImportType.MODULE)],
+                expected_output=[enriched_import.Import(f"{self.test_dir}.test_module_0", enriched_import.Type.MODULE)],
             ),
         ]
 
@@ -101,7 +110,7 @@ class TestToImportPaths(MockPythonLibraryTestCase):
         )
 
         self.assertEqual(
-            [EnrichedImport("argparse", ImportType.UNKNOWN)],
+            [enriched_import.Import("argparse", enriched_import.Type.UNKNOWN)],
             self.transformer.convert_all([node]),
         )
 
@@ -161,8 +170,9 @@ class TestToImportPaths(MockPythonLibraryTestCase):
 
             self.assertEqual(
                 [
-                    EnrichedImport(
-                        f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}", ImportType.MODULE
+                    enriched_import.Import(
+                        f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}",
+                        enriched_import.Type.MODULE,
                     )
                 ],
                 self.transformer.convert_all([node], pyfile_path=os.path.join("new_pkg", "module.py")),
@@ -177,8 +187,9 @@ class TestToImportPaths(MockPythonLibraryTestCase):
 
             self.assertEqual(
                 [
-                    EnrichedImport(
-                        f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}", ImportType.MODULE
+                    enriched_import.Import(
+                        f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}",
+                        enriched_import.Type.MODULE,
                     )
                 ],
                 self.transformer.convert_all([node], pyfile_path=os.path.join("new_subpkg", "module.py")),
@@ -201,8 +212,9 @@ class TestToImportPaths(MockPythonLibraryTestCase):
 
         self.assertEqual(
             [
-                EnrichedImport(
-                    f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}", ImportType.MODULE
+                enriched_import.Import(
+                    f"{os.path.splitext(self.subpackage_module)[0].replace(os.path.sep, '.')}",
+                    enriched_import.Type.MODULE,
                 )
             ],
             self.transformer.convert_all([node], pyfile_path=os.path.join("new_subpkg", "module.py")),
@@ -222,10 +234,10 @@ class TestToImportPaths(MockPythonLibraryTestCase):
 
         self.assertEqual(
             [
-                EnrichedImport("numpy.random", ImportType.UNKNOWN),
-                EnrichedImport("os", ImportType.UNKNOWN),
-                EnrichedImport(f"{self.test_dir}.test_module_0", ImportType.MODULE),
-                EnrichedImport(f"{self.test_dir}.test_subpackage", ImportType.PACKAGE),
+                enriched_import.Import("numpy.random", enriched_import.Type.UNKNOWN),
+                enriched_import.Import("os", enriched_import.Type.UNKNOWN),
+                enriched_import.Import(f"{self.test_dir}.test_module_0", enriched_import.Type.MODULE),
+                enriched_import.Import(f"{self.test_dir}.test_subpackage", enriched_import.Type.PACKAGE),
             ],
             self.transformer.convert_all([import_node, absolute_import_from_node]),
         )

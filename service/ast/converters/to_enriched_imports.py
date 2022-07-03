@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from typing import Collection, Iterator
 
 from domain.imports.common import AST_IMPORT_NODE_TYPE
-from domain.imports.enriched import EnrichedImport, ImportType, resolve_import_type
+from domain.python_import import enriched as enriched_import
+from service.python_import.enriched import resolve_import_type
 
 
 @dataclass
@@ -15,7 +16,7 @@ class ToEnrichedImports:
     # Required when import path takes form of <python_moduledir>.module, e.g. `import third_party.python3.numpy`
     python_moduledir: str
 
-    def convert(self, node: AST_IMPORT_NODE_TYPE, *, pyfile_path: str = "") -> Iterator[list[EnrichedImport]]:
+    def convert(self, node: AST_IMPORT_NODE_TYPE, *, pyfile_path: str = "") -> Iterator[list[enriched_import.Import]]:
         if isinstance(node, ast.Import):
             yield self._import_node(node)
 
@@ -30,28 +31,30 @@ class ToEnrichedImports:
         else:
             raise TypeError(f"can only transform nodes of type Import and ImportFrom; got {type(node).__name__}")
 
-    def convert_all(self, nodes: Collection[AST_IMPORT_NODE_TYPE], *, pyfile_path: str = "") -> list[EnrichedImport]:
-        imports: list[EnrichedImport] = []
+    def convert_all(
+        self, nodes: Collection[AST_IMPORT_NODE_TYPE], *, pyfile_path: str = ""
+    ) -> list[enriched_import.Import]:
+        imports: list[enriched_import.Import] = []
         for node in nodes:
             for import_path in self.convert(node, pyfile_path=pyfile_path):
                 imports.extend(import_path)
 
         return imports
 
-    def _import_node(self, node: ast.Import) -> list[EnrichedImport]:
+    def _import_node(self, node: ast.Import) -> list[enriched_import.Import]:
         import_paths = []
         for alias in node.names:
             # TODO: use self._resolve_import_from_import_path_candidate
             import_path = alias.name
 
             import_type = resolve_import_type(alias.name, self.python_moduledir)
-            if import_type == ImportType.THIRD_PARTY_MODULE:
+            if import_type == enriched_import.Type.THIRD_PARTY_MODULE:
                 import_path = import_path.removeprefix(f"{self.python_moduledir}.").split(".", maxsplit=1)[0]
 
-            import_paths.append(EnrichedImport(import_path, import_type))
+            import_paths.append(enriched_import.Import(import_path, import_type))
         return import_paths
 
-    def _import_from_node(self, node: ast.ImportFrom, pyfile_path: str = "") -> list[EnrichedImport]:
+    def _import_from_node(self, node: ast.ImportFrom, pyfile_path: str = "") -> list[enriched_import.Import]:
         if node.level > 0 and pyfile_path == "":
             # Cannot compute absolute import path from relative import path
             # if path of Python module is not provided.
@@ -61,7 +64,7 @@ class ToEnrichedImports:
             # invalid Python import
             raise ImportError(f"attempted relative import with no known parent package (file: {pyfile_path})")
 
-        imports: list[EnrichedImport] = []
+        imports: list[enriched_import.Import] = []
         if node.level > 0:
             transformed_ast_node = self._relative_import_from_node_to_absolute_import_from_node(node, pyfile_path)
             for node in transformed_ast_node:
@@ -72,13 +75,13 @@ class ToEnrichedImports:
         # from <> import <>
         for name in node.names:
             module_only_import = self._resolve_import_from_import_path_candidate(node.module)
-            if module_only_import.type_ != ImportType.PACKAGE:
+            if module_only_import.type_ != enriched_import.Type.PACKAGE:
                 imports.append(module_only_import)
                 continue
 
             # Ascertain import type of `<node.module>.<name.name>`.
             full_import = self._resolve_import_from_import_path_candidate(f"{node.module}.{name.name}")
-            if full_import.type_ != ImportType.UNKNOWN:
+            if full_import.type_ != enriched_import.Type.UNKNOWN:
                 imports.append(full_import)
                 continue
 
@@ -88,7 +91,7 @@ class ToEnrichedImports:
             # * erroneous
             # TODO: add unit-test for this path
             init_import = self._resolve_import_from_import_path_candidate(f"{node.module}.__init__")
-            if init_import.type_ == ImportType.MODULE or init_import.type_ == ImportType.STUB:
+            if init_import.type_ == enriched_import.Type.MODULE or init_import.type_ == enriched_import.Type.STUB:
                 imports.append(init_import)
                 continue
 
@@ -133,11 +136,11 @@ class ToEnrichedImports:
             ),
         ]
 
-    def _resolve_import_from_import_path_candidate(self, import_path_candidate: str) -> EnrichedImport:
+    def _resolve_import_from_import_path_candidate(self, import_path_candidate: str) -> enriched_import.Import:
         import_type = resolve_import_type(import_path_candidate, self.python_moduledir)
 
-        if import_type == ImportType.THIRD_PARTY_MODULE:
-            return EnrichedImport(
+        if import_type == enriched_import.Type.THIRD_PARTY_MODULE:
+            return enriched_import.Import(
                 # Because we know it's a third-party module, only return the top-level module name.
                 # E.g. `import third_party.python3.numpy.random.x` becomes simply `numpy`.
                 import_path_candidate.removeprefix(f"{self.python_moduledir}.").split(".", maxsplit=1)[0],
@@ -145,11 +148,11 @@ class ToEnrichedImports:
             )
 
         if (
-            import_type == ImportType.UNKNOWN
-            or import_type == ImportType.MODULE
-            or import_type == ImportType.STUB
-            or import_type == ImportType.PROTOBUF_GEN
+            import_type == enriched_import.Type.UNKNOWN
+            or import_type == enriched_import.Type.MODULE
+            or import_type == enriched_import.Type.STUB
+            or import_type == enriched_import.Type.PROTOBUF_GEN
         ):
-            return EnrichedImport(import_path_candidate, import_type)
+            return enriched_import.Import(import_path_candidate, import_type)
 
-        return EnrichedImport(import_path_candidate, ImportType.PACKAGE)
+        return enriched_import.Import(import_path_candidate, enriched_import.Type.PACKAGE)
