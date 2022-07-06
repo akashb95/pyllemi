@@ -39,7 +39,7 @@ def get_stdlib_module_names(version: Optional[tuple[int, int]] = None) -> Union[
 
     # Otherwise, use generated set of builtins.
     try:
-        stdlib_pkg = importlib.import_module(f"domain.imports.stdlib.{py_version.major}_{py_version.minor}")
+        stdlib_pkg = importlib.import_module(f"domain.python_import.stdlib.{py_version.major}_{py_version.minor}")
     except ModuleNotFoundError:
         raise ValueError(f"could not fetch builtin modules for Python version {py_version.major}.{py_version.minor}")
 

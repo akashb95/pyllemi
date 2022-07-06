@@ -6,7 +6,7 @@ from domain.plz.rule import python as target
 
 
 class NewBuildPkgCreator:
-    def __init__(self, path_to_pkg: str, build_file_names: Optional[set[str]] = None, use_glob=False):
+    def __init__(self, path_to_pkg: str, build_file_names, use_glob=False):
         self._path_to_pkg = path_to_pkg
         self._new_package_module_finder = NewPackageModuleFinder(path_to_pkg, build_file_names)
         self._use_glob = use_glob

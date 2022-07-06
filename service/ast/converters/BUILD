@@ -7,7 +7,6 @@ python_library(
     visibility = ["PUBLIC"],
     deps = [
         "//adapters/plz_cli",
-        "//domain/imports",
         "//domain/plz/rule",
         "//domain/plz/target",
         "//domain/python_import",

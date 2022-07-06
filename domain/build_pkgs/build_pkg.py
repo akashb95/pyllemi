@@ -29,6 +29,7 @@ class BUILDPkg:
         self._uncommitted_changes: bool = False
         self._dir_path: str = dir_path_relative_to_reporoot
         self._build_file_names = build_file_names
+        self._build_file_names_sorted_by_len = sorted(list(self._build_file_names), key=lambda x: len(x))
 
         self._build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
 
@@ -39,7 +40,7 @@ class BUILDPkg:
         )
         self._this_pkg_build_file_path: str = ""
 
-        self._has_been_modified = True
+        self._has_been_modified = False
 
         self._initialise()
         return
@@ -98,14 +99,11 @@ class BUILDPkg:
                 self._logger.debug(f"Found existing BUILD file: {path}")
                 return False
 
-        for build_file_name in self._build_file_names:
-            if os.path.exists(path := os.path.join(self._dir_path, build_file_name)) or os.path.exists(
-                os.path.join(self._dir_path, build_file_name.lower())
-            ):
-                # Check for any directories named after BUILD file.
-                # e.g. if path/to/build were a directory, we cannot create path/to/BUILD as a file.
-                continue
-            self._this_pkg_build_file_path = path
+        for build_file_name in self._build_file_names_sorted_by_len:
+            # Preference to shorter BUILD file names.
+            if not os.path.isdir(path := os.path.join(self._dir_path, build_file_name)):
+                self._this_pkg_build_file_path = path
+                break
         return True
 
     def _infer_targets_and_add_to_build_file(self):
@@ -149,8 +147,8 @@ class BUILDPkg:
         dumped_ast = self._build_file.dump_ast()
         with open(self._this_pkg_build_file_path, "w") as build_file:
             build_file.write(dumped_ast)
-        self._uncommitted_changes = False
-        self._has_been_modified = True
+            self._uncommitted_changes = False
+            self._has_been_modified = True
         return self._this_pkg_build_file_path
 
     def has_uncommitted_changes(self) -> bool:

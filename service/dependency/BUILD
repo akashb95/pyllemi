@@ -9,7 +9,6 @@ python_library(
     deps = [
         "//adapters/plz_cli",
         "//common/logger",
-        "//domain/imports",
         "//domain/plz/target",
         "//domain/python_import",
         "//service/ast/converters",

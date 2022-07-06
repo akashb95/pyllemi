@@ -8,7 +8,6 @@ python_library(
     ),
     deps = [
         "//common/logger",
-        "//domain/imports",
         "//domain/python_import",
     ],
 )
