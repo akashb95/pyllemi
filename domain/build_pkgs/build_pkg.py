@@ -3,12 +3,12 @@ import logging
 import os.path
 from typing import Callable, Collection, Optional, Any
 
+import service.ast.converters.to_python_rule
 from adapters.os.new_build_pkg_creator import NewBuildPkgCreator
 from common.logger.logger import setup_logger
 from domain.build_files.build_file import BUILDFile
-from domain.targets import converters as target_converters
-from domain.targets.plz_target import PlzTarget
-from domain.targets.python_target import PythonLibrary, PythonTest
+from domain.plz.rule.python import Library, Test
+from domain.plz.target.target import Target
 
 
 class BUILDPkg:
@@ -29,6 +29,7 @@ class BUILDPkg:
         self._uncommitted_changes: bool = False
         self._dir_path: str = dir_path_relative_to_reporoot
         self._build_file_names = build_file_names
+        self._build_file_names_sorted_by_len = sorted(list(self._build_file_names), key=lambda x: len(x))
 
         self._build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
 
@@ -39,7 +40,7 @@ class BUILDPkg:
         )
         self._this_pkg_build_file_path: str = ""
 
-        self._has_been_modified = True
+        self._has_been_modified = False
 
         self._initialise()
         return
@@ -65,16 +66,16 @@ class BUILDPkg:
                 self.write_to_build_file()
         return
 
-    def resolve_deps_for_targets(self, deps_resolver_fn: Callable[[PlzTarget, set[str]], set[PlzTarget]]) -> None:
+    def resolve_deps_for_targets(self, deps_resolver_fn: Callable[[Target, set[str]], set[Target]]) -> None:
         if not self._build_file.has_modifiable_nodes:
             return
 
         for node in self._build_file.get_existing_ast_python_build_rules():
-            as_python_target = target_converters.from_ast_node_to_python_target(node, self._dir_path)
+            as_python_target = service.ast.converters.to_python_rule.convert(node, self._dir_path)
             self._logger.debug(f"Found target in {self._this_pkg_build_file_path}: {as_python_target}")
 
             resolved_deps = deps_resolver_fn(
-                PlzTarget(f"//{self._dir_path}:{as_python_target['name']}"),
+                Target(f"//{self._dir_path}:{as_python_target['name']}"),
                 # Only a python_binary target has the main attribute; all other Python targets will have srcs.
                 # The occurrence of the 2 different attributes are mutually exclusive.
                 as_python_target["srcs"] or [as_python_target["main"]],
@@ -98,19 +99,16 @@ class BUILDPkg:
                 self._logger.debug(f"Found existing BUILD file: {path}")
                 return False
 
-        for build_file_name in self._build_file_names:
-            if os.path.exists(path := os.path.join(self._dir_path, build_file_name)) or os.path.exists(
-                os.path.join(self._dir_path, build_file_name.lower())
-            ):
-                # Check for any directories named after BUILD file.
-                # e.g. if path/to/build were a directory, we cannot create path/to/BUILD as a file.
-                continue
-            self._this_pkg_build_file_path = path
+        for build_file_name in self._build_file_names_sorted_by_len:
+            # Preference to shorter BUILD file names.
+            if not os.path.isdir(path := os.path.join(self._dir_path, build_file_name)):
+                self._this_pkg_build_file_path = path
+                break
         return True
 
     def _infer_targets_and_add_to_build_file(self):
-        python_library: Optional[PythonLibrary]
-        python_test: Optional[PythonTest]
+        python_library: Optional[Library]
+        python_test: Optional[Test]
         python_library, python_test = self._new_pkg_creator.infer_py_targets()
 
         if python_library is None and python_test is None:
@@ -149,8 +147,8 @@ class BUILDPkg:
         dumped_ast = self._build_file.dump_ast()
         with open(self._this_pkg_build_file_path, "w") as build_file:
             build_file.write(dumped_ast)
-        self._uncommitted_changes = False
-        self._has_been_modified = True
+            self._uncommitted_changes = False
+            self._has_been_modified = True
         return self._this_pkg_build_file_path
 
     def has_uncommitted_changes(self) -> bool:

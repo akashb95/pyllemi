@@ -8,7 +8,9 @@ python_library(
     ),
     deps = [
         "//common/logger",
+        "//domain/plz/rule",
         "//domain/targets",
+        "//service/ast/converters",
     ],
 )
 
@@ -17,5 +19,6 @@ python_test(
     srcs = glob(["*_test.py"]),
     deps = [
         ":build_files",
+        "//domain/plz/rule",
     ],
 )

@@ -2,16 +2,17 @@ import ast
 import unittest
 
 from domain.build_files.build_file import BUILDFile
-from domain.targets.python_target import PythonLibrary
+from domain.plz.rule.python import Library
 
 
 class TestBuildFile(unittest.TestCase):
     def test_parses_new_targets_into_ast(self):
         build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
         build_file.add_new_target(
-            PythonLibrary(name="x", srcs={"x.py", "y.py"}, deps={"//path/to:target", ":x"}),
+            Library(name="x", srcs={"x.py", "y.py"}, deps={"//path/to:target", ":x"}),
         )
         build_file._add_new_targets_to_ast()
+        # noinspection PyTypeChecker
         self.assertEqual(
             ast.unparse(
                 ast.Module(
@@ -74,7 +75,7 @@ class TestBuildFile(unittest.TestCase):
             ],
         )
         build_file = BUILDFile(ast.Module(body=[ast.Expr(build_rule)], type_ignores=[]))
-        build_rule_as_domain_target = PythonLibrary(
+        build_rule_as_domain_target = Library(
             name="x",
             srcs={"x.py", "y.py"},
             deps={"//path/to:target", ":x"},
@@ -113,7 +114,7 @@ class TestBuildFile(unittest.TestCase):
 
     def test_dump_ast(self):
         build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
-        build_file.add_new_target(PythonLibrary(name="x", srcs={"x.py", "y.py"}, deps={"dep_2.py", "dep_1.py"}))
+        build_file.add_new_target(Library(name="x", srcs={"x.py", "y.py"}, deps={"dep_2.py", "dep_1.py"}))
         self.assertEqual(
             "python_library(name='x', srcs=['x.py', 'y.py'], deps=['dep_1.py', 'dep_2.py'])",
             build_file.dump_ast(),
