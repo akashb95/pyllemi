@@ -14,6 +14,7 @@ from adapters.plz_cli.query import (
 from colorama import Fore
 from common.custom_arg_types import existing_dir_arg_type
 from config import known_dependencies
+from config import known_namespace_packages
 from config.config import unmarshal as unmarshal_config
 from domain.build_pkgs.build_pkg import BUILDPkg
 from domain.plz.target.target import Target
@@ -37,6 +38,7 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
     std_lib_modules: set[str] = get_stdlib_module_names()
     build_file_names: list[str] = get_build_file_names()
     known_deps: dict[str, Collection[Target]] = known_dependencies.get_from_config(config)
+    known_namespace_pkgs: dict[str, Target] = known_namespace_packages.get_from_config(config)
 
     build_pkgs: list[BUILDPkg] = []
     for build_pkg_dir_path in build_pkg_dir_paths:
@@ -49,6 +51,7 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
         std_lib_modules=std_lib_modules,
         available_third_party_module_targets=third_party_modules_targets,
         known_dependencies=known_deps,
+        namespace_to_target=known_namespace_pkgs,
         nodes_collator=NodeCollector(),
     )
 
@@ -63,9 +66,9 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
 
     if modified_build_file_paths:
         run_plz_fmt(*modified_build_file_paths)
-        print(f"{Fore.MAGENTA} 📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.", file=sys.stdout)
+        print(f"{Fore.MAGENTA}📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.", file=sys.stdout)
     else:
-        print(f"{Fore.GREEN} No BUILD files were modified. Your imports were 👌 already.", file=sys.stdout)
+        print(f"\n{Fore.GREEN}No BUILD files were modified. Your imports were 👌 already.\n", file=sys.stdout)
     return
 
 

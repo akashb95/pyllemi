@@ -27,3 +27,6 @@ class Import:
     @property
     def type(self):
         return self.type_
+
+    def get_top_level_module_name(self) -> str:
+        return self.import_.split(".", maxsplit=1)[0] if "." in self.import_ else self.import_

@@ -3,15 +3,12 @@ from typing import Collection, Optional
 
 from adapters.plz_cli.query import get_whatinputs
 from common.logger.logger import setup_logger
+from common.trie import trie
 from domain.plz.target.target import Target
 from domain.python_import import enriched as enriched_import
 from service.ast.converters.to_enriched_imports import ToEnrichedImports
 from service.python_import.enriched import to_whatinputs_input
 from service.python_import.node_collector import NodeCollector
-
-
-def get_top_level_module_name(abs_import_path: str) -> str:
-    return abs_import_path.split(".", maxsplit=1)[0] if "." in abs_import_path else abs_import_path
 
 
 def convert_os_path_to_import_path(os_path: str, abs_path_to_project_root: str = "") -> str:
@@ -36,6 +33,7 @@ class DependencyResolver:
         std_lib_modules: Collection[str],
         available_third_party_module_targets: set[str],
         known_dependencies: dict[str, Collection[Target]],
+        namespace_to_target: dict[str, Target],
         nodes_collator: NodeCollector,
     ):
         self._logger = setup_logger(__name__)
@@ -43,6 +41,8 @@ class DependencyResolver:
         self.python_moduledir = python_moduledir
         self.std_lib_modules = std_lib_modules
         self.available_third_party_module_targets = frozenset(available_third_party_module_targets)
+        self.namespace_pkg_to_target = namespace_to_target
+        self.namespace_pkg_lookup: trie.Trie = trie.new_trie(self.namespace_pkg_to_target.keys())
         self.known_dependencies = known_dependencies
         self.enricher = enricher
 
@@ -64,11 +64,11 @@ class DependencyResolver:
                 code = pyfile.read()
             for import_node in self.collator.collate(code=code, path=relative_path_to_src):
                 for enriched_imports in self.enricher.convert(import_node):
-                    for enriched_import in enriched_imports:
-                        deps = self._resolve_dependencies_for_enriched_import(enriched_import)
-                        if deps is None:
+                    for enriched_import_ in enriched_imports:
+                        dep = self._resolve_dependencies_for_enriched_import(enriched_import_)
+                        if dep is None:
                             continue
-                        import_targets |= deps
+                        import_targets.add(dep)
 
             # Inject known dependencies.
             if (
@@ -88,10 +88,11 @@ class DependencyResolver:
         return import_targets
 
     def _resolve_dependencies_for_enriched_import(
-        self, enriched_import: enriched_import.Import
-    ) -> Optional[set[Target]]:
+        self,
+        import_: enriched_import.Import,
+    ) -> Optional[Target]:
         # Filter out stdlib modules.
-        top_level_module_name = get_top_level_module_name(enriched_import.import_)
+        top_level_module_name = import_.get_top_level_module_name()
         if top_level_module_name in self.std_lib_modules:
             self._logger.debug(f"Found import of a standard lib module: {top_level_module_name}")
             return None
@@ -99,15 +100,20 @@ class DependencyResolver:
         # Resolve 3rd-party library targets.
         possible_third_party_module_target = f"//{self.python_moduledir}:{top_level_module_name}".replace(".", "/")
         if possible_third_party_module_target in self.available_third_party_module_targets:
-            return {Target(possible_third_party_module_target)}
-
-        self._logger.debug(f"Found import of a custom lib module: {enriched_import.import_}")
+            return Target(possible_third_party_module_target)
 
         # TODO(#4): add ability to 'guess' target based on import path -- if it is not a target,
         #  then revert to whatinputs.
-        if (whatinputs_input := to_whatinputs_input(enriched_import)) is not None:
+        if (whatinputs_input := to_whatinputs_input(import_)) is not None:
+            self._logger.debug(f"Found import of a custom lib module: {import_.import_}")
             # Batch whatinputs calls for performance gains.
             self._whatinputs_inputs_for_this_target |= set(whatinputs_input)
+
+        if (
+            namespace_pkg_target := trie.longest_existing_path_in_trie(self.namespace_pkg_lookup, import_.import_)
+        ) != "":
+            self._logger.debug(f"Found import of a known namespace package: {namespace_pkg_target}")
+            return self.namespace_pkg_to_target[namespace_pkg_target]
 
         return None
 

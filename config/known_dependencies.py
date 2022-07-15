@@ -1,12 +1,11 @@
 from collections import defaultdict
-from typing import Any
 
 from config.common import LOGGER
-from config.schema import KNOWN_DEPENDENCIES_KEY
+from config.schema import KNOWN_DEPENDENCIES_KEY, UNMARSHALLED_CONFIG_TYPE
 from domain.plz.target.target import Target
 
 
-def get_from_config(config: dict[str, list[Any]]) -> dict[str, list[Target]]:
+def get_from_config(config: UNMARSHALLED_CONFIG_TYPE) -> dict[str, list[Target]]:
     if (known_dependencies := config.get(KNOWN_DEPENDENCIES_KEY)) is None:
         return {}
 
