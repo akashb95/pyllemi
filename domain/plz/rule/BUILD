@@ -1,4 +1,4 @@
-package(default_visibility=["//domain/...", "//service/..."])
+package(default_visibility=["//domain/...", "//service/...", "//adapters/..."])
 
 python_library(
     name = "rule",

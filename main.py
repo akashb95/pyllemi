@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 from argparse import ArgumentParser
-from typing import Any, Collection
+from typing import Collection
 
 from adapters.plz_cli.query import (
     get_build_file_names,
@@ -13,9 +13,7 @@ from adapters.plz_cli.query import (
 )
 from colorama import Fore
 from common.custom_arg_types import existing_dir_arg_type
-from config import known_dependencies
-from config import known_namespace_packages
-from config.config import unmarshal as unmarshal_config
+from config import config, known_dependencies, known_namespace_packages, merge
 from domain.build_pkgs.build_pkg import BUILDPkg
 from domain.plz.target.target import Target
 from domain.python_import.stdlib.stdlib_modules import get_stdlib_module_names
@@ -25,11 +23,10 @@ from service.python_import.node_collector import NodeCollector
 
 
 # noinspection PyShadowingNames
-def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
+def run(build_pkg_dir_paths: list[str]):
     """
 
     :param build_pkg_dir_paths: Relative to reporoot
-    :param config: Config parsed into dict.
     :return:
     """
 
@@ -37,13 +34,25 @@ def run(build_pkg_dir_paths: list[str], config: dict[str, Any]):
     third_party_modules_targets: set[str] = set(get_third_party_module_targets())
     std_lib_modules: set[str] = get_stdlib_module_names()
     build_file_names: list[str] = get_build_file_names()
-    known_deps: dict[str, Collection[Target]] = known_dependencies.get_from_config(config)
-    known_namespace_pkgs: dict[str, Target] = known_namespace_packages.get_from_config(config)
 
     build_pkgs: list[BUILDPkg] = []
     for build_pkg_dir_path in build_pkg_dir_paths:
-        build_pkgs.append(BUILDPkg(build_pkg_dir_path, set(build_file_names), config))
+        merged_config = merge.merge(
+            list(
+                map(
+                    config.unmarshal,
+                    config.find_files_in_dir_hierarchy(build_pkg_dir_path),
+                ),
+            ),
+        )
+        build_pkgs.append(BUILDPkg(build_pkg_dir_path, set(build_file_names), merged_config))
 
+    if len(build_pkgs) == 0:
+        print(f"\n{Fore.GREEN}No BUILD package provided; no files modified.", file=sys.stdout)
+        return
+
+    known_deps: dict[str, Collection[Target]] = known_dependencies.get_from_config(merged_config)
+    known_namespace_pkgs: dict[str, Target] = known_namespace_packages.get_from_config(merged_config)
     python_moduledir = get_python_moduledir()
     dependency_resolver = DependencyResolver(
         python_moduledir=python_moduledir,
@@ -108,10 +117,8 @@ if __name__ == "__main__":
 
     LOGGER.debug(f"resolving imports for {{{', '.join(build_pkg_dirs)}}}; cwd: {os.getcwd()}")
 
-    config = unmarshal_config(".pyllemi.json")
-
     start_time = time.time()
-    run(build_pkg_dirs, config)
+    run(build_pkg_dirs)
     duration = time.time() - start_time
 
     LOGGER.debug(f"Dependency target resolution for {{{', '.join(build_pkg_dirs)}}} took {duration} seconds.")

@@ -1,4 +1,5 @@
 import ast
+import os
 from unittest import mock
 
 from domain.build_pkgs.build_pkg import BUILDPkg
@@ -102,6 +103,19 @@ class TestBuildPkgWithNewBuildPkg(MockPythonLibraryWithNewBuildPkgTestCase):
         mock_build_file_instance.add_new_target.assert_called_once_with(mock_python_lib)
         mock_file_open.return_value.write.assert_called_once_with(mock_dumped_ast)
 
+        return
+
+    @mock.patch("builtins.open", new_callable=mock.mock_open)
+    def test_no_build_file_nor_python_modules_in_dir(
+        self,
+        mock_file_open: mock.MagicMock,
+    ):
+        os.makedirs(test_dir := os.path.join(self.test_dir, "no_build_file_nor_py_srcs"))
+        self.dirs_to_delete = [test_dir] + self.dirs_to_delete
+        build_pkg = BUILDPkg(test_dir, frozenset({"BUILD"}), config={"useGlobAsSrcs": True})
+        self.assertEqual(0, mock_file_open.return_value.write.call_count)
+        self.assertFalse(build_pkg.has_uncommitted_changes())
+        self.assertFalse(build_pkg.has_been_modified)
         return
 
 

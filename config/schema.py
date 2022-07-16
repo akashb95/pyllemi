@@ -1,9 +1,9 @@
 from typing import Union
 
 
-KNOWN_DEPENDENCIES_KEY = "knownDependencies"
-KNOWN_NAMESPACES_KEY = "knownNamespaces"
-USE_GLOBS_AS_SRCS_KEY = "useGlobAsSrcs"
+KNOWN_DEPENDENCIES_KEY: str = "knownDependencies"
+KNOWN_NAMESPACES_KEY: str = "knownNamespaces"
+USE_GLOBS_AS_SRCS_KEY: str = "useGlobAsSrcs"
 
 UNMARSHALLED_CONFIG_TYPE = dict[str, Union[bool, list[dict[str, str]]]]
 
