@@ -33,6 +33,8 @@ SCHEMA = {
                 },
                 "plzTarget": {"type": "string", "pattern": r"^//.+"},
             },
+            "required": ["namespace", "plzTarget"],
+            "additionalProperties": False,
         },
     },
 }
