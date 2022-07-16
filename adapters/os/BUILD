@@ -8,7 +8,7 @@ python_library(
     ),
     deps = [
         "//common/logger",
-        "//domain/targets",
+        "//domain/plz/rule",
     ],
 )
 
@@ -17,7 +17,7 @@ python_test(
     srcs = glob(["*_test.py"]),
     deps = [
         ":os",
-        "//domain/targets",
+        "//domain/plz/rule",
         "//utils",
     ],
 )

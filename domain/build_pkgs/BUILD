@@ -10,7 +10,9 @@ python_library(
         "//adapters/os",
         "//common/logger",
         "//domain/build_files",
-        "//domain/targets",
+        "//domain/plz/rule",
+        "//domain/plz/target",
+        "//service/ast/converters",
     ],
 )
 
@@ -19,7 +21,8 @@ python_test(
     srcs = glob(["*_test.py"]),
     deps = [
         ":build_pkgs",
-        "//domain/targets",
+        "//domain/plz/rule",
+        "//domain/plz/target",
         "//utils",
     ],
 )

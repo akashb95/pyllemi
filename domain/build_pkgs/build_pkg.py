@@ -54,6 +54,9 @@ class BUILDPkg:
             self._infer_targets_and_add_to_build_file()
             if self._uncommitted_changes:
                 self.write_to_build_file()
+            else:
+                self._logger.warning(f"No BUILD file or Python modules found in {self._dir_path}")
+                return
 
         # There should now already be a BUILD file within this directory; read it and
         # load existing Python target declarations into domain representations.
