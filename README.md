@@ -13,11 +13,79 @@ Pyllemi does not generate third party `pip_library` or `python_wheel` rules.
 
 ## Config
 
-Configuration for Pyllemi is passed in via a `.pyllemi.json` file at the reporoot.
+Configuration for Pyllemi is passed in via `.pyllemi.json` files defined in any subdirectory within the
+reporoot. For any input BUILD Package directory, the effective config will be the result of merging all
+`pyllemi.json` files in the directory tree. For example, consider the following repo:
+
+```
+[reporoot]
+├── .pyllemi.json
+├── BUILD
+├── module.py
+└── pkg
+    ├── .pyllemi.json
+    ├── BUILD
+    └── subpkg
+        └── BUILD
+```
+
+When run on `pkg/` and on `pkg/subpkg`, Pyllemi will merge `pkg/.pyllemi.json` and `.pyllemi.json` (at the reporoot) to
+get an "effective config", which will then be applied when resolving dependencies.
+
+### `knownNamespaces`
+
+Array of objects. Allows setting a Plz target dependency for a Python import's namespace.
+
+```json
+{
+  "knownNamespaces": [
+    {
+      "namespace": "google.protobuf",
+      "plzTarget": "//third_party/python3:protobuf"
+    }
+  ]
+}
+```
+
+If Pyllemi finds an import matching the namespace provided, then it maps that import to the given target.
+This configuration is intended to be used with third-party namespace packages. For example, using the
+`pip` library `protobuf` requires an import statement such as:
+
+```python
+from google.protobuf import field_mask_pb2
+```
+
+If there is an overlap of the given known namespaces, then the longest match is selected. Below is shown
+the output expected for the given Python imports provided the following configuration:
+
+```json
+{
+  "knownNamespaces": [
+    {
+      "namespace": "google.protobuf",
+      "plzTarget": "//third_party/python3:protobuf"
+    },
+    {
+      "namespace": "google",
+      "plzTarget": "//third_party/python3:google"
+    }
+  ]
+}
+```
+
+```python
+import google  # //third_party/python3:google
+from google import some_subpkg  # //third_party/python3:google
+from google.protobuf import field_mask_pb2  # //third_party/python3:protobuf
+```
 
 ### `knownDependencies`
 
 Array of objects. Allows setting a Plz target dependency for a Python module.
+
+It is recommended to use this for imports which can only be performed using `importlib`. For example, it may be a
+dynamic import, which can only be computed at runtime. Or, it could be an import of a package which has a disallowed
+character per the Python syntax spec (like a hyphen) in its namespace.
 
 ```json
 {
@@ -67,7 +135,7 @@ Create a `remote_file` BUILD rule to download the `.pex` binary from Github.
 ```python
 # tools/BUILD
 
-PYLLEMI_VERSION = "v0.8.9"
+PYLLEMI_VERSION = "v0.9.0"
 PYTHON_VERSION = "39"  # Alternative: "310"
 remote_file(
     name="pyllemi",
