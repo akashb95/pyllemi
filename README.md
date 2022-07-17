@@ -11,6 +11,39 @@ specifically, it can:
 
 Pyllemi does not generate third party `pip_library` or `python_wheel` rules.
 
+## Running Pyllemi with Please
+
+Create a `remote_file` BUILD rule to download the `.pex` binary from Github.
+
+```python
+# tools/BUILD
+
+PYLLEMI_VERSION = "v0.9.0"
+PYTHON_VERSION = "39"  # Alternative: "310"
+remote_file(
+    name="pyllemi",
+    url=f"https://github.com/akashb95/pyllemi/releases/download/{PYLLEMI_VERSION}/pyllemi-py{PYTHON_VERSION}.pex",
+    extract=False,
+    binary=True,
+)
+```
+
+Optionally, you can create an alias to run the downloaded version of Pyllemi.
+
+```
+# .plzconfig
+
+[alias "update-py-targets"]
+cmd = run --wd=. //third_party/tools:pyllemi -- ./ -v
+```
+
+## Compatibility
+
+Tested on Python 3.9 and 3.10.
+
+The only difference between the `pyllemi-py39.pex` and `pyllemi-py310.pex` is that the binary contains a different
+shebang to use different versions of Python available in `env`. 
+
 ## Config
 
 Configuration for Pyllemi is passed in via `.pyllemi.json` files defined in any subdirectory within the
@@ -127,36 +160,3 @@ python_library(
 
 Note that the `glob`s in the example are the exact values that will appear in any generated BUILD files, and cannot be
 configured.
-
-## Running Pyllemi with Please
-
-Create a `remote_file` BUILD rule to download the `.pex` binary from Github.
-
-```python
-# tools/BUILD
-
-PYLLEMI_VERSION = "v0.9.0"
-PYTHON_VERSION = "39"  # Alternative: "310"
-remote_file(
-    name="pyllemi",
-    url=f"https://github.com/akashb95/pyllemi/releases/download/{PYLLEMI_VERSION}/pyllemi-py{PYTHON_VERSION}.pex",
-    extract=False,
-    binary=True,
-)
-```
-
-Optionally, you can create an alias to run the downloaded version of Pyllemi.
-
-```
-# .plzconfig
-
-[alias "update-py-targets"]
-cmd = run --wd=. //third_party/tools:pyllemi -- ./ -v
-```
-
-## Compatibility
-
-Tested on Python 3.9 and 3.10.
-
-The only difference between the `pyllemi-py39.pex` and `pyllemi-py310.pex` is that the binary contains a different
-shebang to use different versions of Python available in `env`. 
