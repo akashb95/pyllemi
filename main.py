@@ -36,6 +36,7 @@ def run(build_pkg_dir_paths: list[str]):
     build_file_names: list[str] = get_build_file_names()
 
     build_pkgs: list[BUILDPkg] = []
+    merged_config = {}
     for build_pkg_dir_path in build_pkg_dir_paths:
         merged_config = merge.merge(
             list(
