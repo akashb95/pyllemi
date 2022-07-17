@@ -63,7 +63,7 @@ class DependencyResolver:
             with open(relative_path_to_src := os.path.join(srcs_plz_target.build_pkg_dir, src), "r") as pyfile:
                 code = pyfile.read()
             for import_node in self.collator.collate(code=code, path=relative_path_to_src):
-                for enriched_imports in self.enricher.convert(import_node):
+                for enriched_imports in self.enricher.convert(import_node, pyfile_path=relative_path_to_src):
                     for enriched_import_ in enriched_imports:
                         dep = self._resolve_dependencies_for_enriched_import(enriched_import_)
                         if dep is None:

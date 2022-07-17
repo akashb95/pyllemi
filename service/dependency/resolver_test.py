@@ -38,7 +38,7 @@ class TestDependencyResolver(TestCase):
         deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"x.py"})
         mock_file_open.assert_called_once_with("path/to/x.py", "r")
         self.mock_nodes_collator.collate.assert_called_once_with(code="import colorama", path="path/to/x.py")
-        self.mock_enricher.convert.assert_called_once_with(mock_import_node)
+        self.mock_enricher.convert.assert_called_once_with(mock_import_node, pyfile_path="path/to/x.py")
         self.assertEqual({Target("//third_party/python:colorama")}, deps)
 
         return
@@ -72,7 +72,7 @@ class TestDependencyResolver(TestCase):
         deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"y.py"})
         mock_file_open.assert_called_once_with("path/to/y.py", "r")
         self.mock_nodes_collator.collate.assert_called_once_with(code="import custom.module", path="path/to/y.py")
-        self.mock_enricher.convert.assert_called_once_with(mock_import_node)
+        self.mock_enricher.convert.assert_called_once_with(mock_import_node, pyfile_path="path/to/y.py")
         mock_get_whatinputs.assert_called_once()
         self.assertEqual({Target("//custom:target")}, deps)
 
@@ -108,7 +108,7 @@ class TestDependencyResolver(TestCase):
             code="import custom.module, path.to.target",
             path="path/to/z.pyi",
         )
-        self.mock_enricher.convert.assert_called_once_with(mock_import_node)
+        self.mock_enricher.convert.assert_called_once_with(mock_import_node, pyfile_path="path/to/z.pyi")
         mock_get_whatinputs.assert_called_once()
         self.assertEqual({Target("//custom:target")}, deps)
 
@@ -137,7 +137,7 @@ class TestDependencyResolver(TestCase):
         deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"x.py"})
         mock_file_open.assert_called_once_with("path/to/x.py", "r")
         self.mock_nodes_collator.collate.assert_called_once_with(code="import colorama", path="path/to/x.py")
-        self.mock_enricher.convert.assert_called_once_with(mock_import_node)
+        self.mock_enricher.convert.assert_called_once_with(mock_import_node, pyfile_path="path/to/x.py")
         self.assertEqual(
             {Target("//third_party/python:colorama"), Target("//injected/pkg:target")},
             deps,
@@ -170,7 +170,7 @@ class TestDependencyResolver(TestCase):
             code="import google.protobuf.field_mask_pb2",
             path="path/to/x.py",
         )
-        self.mock_enricher.convert.assert_called_once_with(mock_import_node)
+        self.mock_enricher.convert.assert_called_once_with(mock_import_node, pyfile_path="path/to/x.py")
         self.assertEqual(
             {Target("//third_party/python3:protobuf")},
             deps,
