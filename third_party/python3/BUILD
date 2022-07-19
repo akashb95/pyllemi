@@ -23,3 +23,16 @@ pip_library(
     name = "pyrsistent",
     version = "0.18.1",
 )
+
+pip_library(
+    name = "protobuf",
+    version = "3.17.3",
+    deps = [
+        ":six",
+    ],
+)
+
+pip_library(
+    name = "six",
+    version = "1.16.0",
+)

@@ -2,7 +2,6 @@ import logging
 import os
 import sys
 from argparse import ArgumentParser
-from typing import Collection
 
 from adapters.plz_cli.query import (
     get_build_file_names,
@@ -13,9 +12,8 @@ from adapters.plz_cli.query import (
 )
 from colorama import Fore
 from common.custom_arg_types import existing_dir_arg_type
-from config import config, known_dependencies, known_namespace_packages, merge
+from config import config, merge
 from domain.build_pkgs.build_pkg import BUILDPkg
-from domain.plz.target.target import Target
 from domain.python_import.stdlib.stdlib_modules import get_stdlib_module_names
 from service.ast.converters.to_enriched_imports import ToEnrichedImports
 from service.dependency.resolver import DependencyResolver
@@ -36,7 +34,6 @@ def run(build_pkg_dir_paths: list[str]):
     build_file_names: list[str] = get_build_file_names()
 
     build_pkgs: list[BUILDPkg] = []
-    merged_config = {}
     for build_pkg_dir_path in build_pkg_dir_paths:
         merged_config = merge.merge(
             list(
@@ -46,27 +43,26 @@ def run(build_pkg_dir_paths: list[str]):
                 ),
             ),
         )
+        LOGGER.debug(f"Merged config for {build_pkg_dir_path}: {merged_config}")
         build_pkgs.append(BUILDPkg(build_pkg_dir_path, set(build_file_names), merged_config))
 
     if len(build_pkgs) == 0:
         print(f"\n{Fore.GREEN}No BUILD package provided; no files modified.", file=sys.stdout)
         return
 
-    known_deps: dict[str, Collection[Target]] = known_dependencies.get_from_config(merged_config)
-    known_namespace_pkgs: dict[str, Target] = known_namespace_packages.get_from_config(merged_config)
     python_moduledir = get_python_moduledir()
-    dependency_resolver = DependencyResolver(
-        python_moduledir=python_moduledir,
-        enricher=ToEnrichedImports(get_reporoot(), python_moduledir),
-        std_lib_modules=std_lib_modules,
-        available_third_party_module_targets=third_party_modules_targets,
-        known_dependencies=known_deps,
-        namespace_to_target=known_namespace_pkgs,
-        nodes_collator=NodeCollector(),
-    )
 
     modified_build_file_paths: list[str] = []
     for build_pkg in build_pkgs:
+        dependency_resolver = DependencyResolver(
+            python_moduledir=python_moduledir,
+            enricher=ToEnrichedImports(get_reporoot(), python_moduledir),
+            std_lib_modules=std_lib_modules,
+            available_third_party_module_targets=third_party_modules_targets,
+            known_dependencies=build_pkg.config.known_deps,
+            namespace_to_target=build_pkg.config.known_namespaces,
+            nodes_collator=NodeCollector(),
+        )
         build_pkg.resolve_deps_for_targets(dependency_resolver.resolve_deps_for_srcs)
         if build_pkg.has_uncommitted_changes():
             build_pkg.write_to_build_file()
@@ -76,7 +72,7 @@ def run(build_pkg_dir_paths: list[str]):
 
     if modified_build_file_paths:
         run_plz_fmt(*modified_build_file_paths)
-        print(f"{Fore.MAGENTA}📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.", file=sys.stdout)
+        print(f"{Fore.MAGENTA}📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.\n", file=sys.stdout)
     else:
         print(f"\n{Fore.GREEN}No BUILD files were modified. Your imports were 👌 already.\n", file=sys.stdout)
     return

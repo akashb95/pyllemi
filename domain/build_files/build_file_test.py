@@ -112,13 +112,39 @@ class TestBuildFile(unittest.TestCase):
         )
         return
 
-    def test_dump_ast(self):
+    def test_dump_ast_when_build_file_is_empty(self):
         build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
         build_file.add_new_target(Library(name="x", srcs={"x.py", "y.py"}, deps={"dep_2.py", "dep_1.py"}))
         self.assertEqual(
             "python_library(name='x', srcs=['x.py', 'y.py'], deps=['dep_1.py', 'dep_2.py'])",
             build_file.dump_ast(),
         )
+        return
+
+    def test_dump_ast_when_build_file_has_preexisting_targets(self):
+        build_rule = ast.Call(
+            func=ast.Name(id="python_library"),
+            args=[],
+            keywords=[
+                ast.keyword(arg="name", value=ast.Constant(value="x")),
+                ast.keyword(
+                    arg="srcs",
+                    value=ast.List(elts=[ast.Constant(value="x.py"), ast.Constant(value="y.py")]),
+                ),
+                # deliberately missing the deps keyword.
+            ],
+        )
+        build_file = BUILDFile(ast.Module(body=[build_rule], type_ignores=[]))
+        build_file.register_modified_build_rule_to_python_target(
+            build_rule,
+            Library(name="x", srcs={"x.py", "y.py"}, deps={"dep_2.py", "dep_1.py"}),
+        )
+
+        self.assertEqual(
+            "python_library(name='x', srcs=['x.py', 'y.py'], deps=['dep_1.py', 'dep_2.py'])",
+            build_file.dump_ast(),
+        )
+
         return
 
     def test_get_existing_ast_python_build_rules(self):

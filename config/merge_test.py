@@ -1,8 +1,10 @@
 from collections import namedtuple
 from unittest import TestCase
 
-from config.merge import _merge_bool_property, _merge_dict_property
-from config.schema import USE_GLOBS_AS_SRCS_KEY, KNOWN_NAMESPACES_KEY, KNOWN_DEPENDENCIES_KEY
+from config.config import Config
+from config.merge import _merge_bool_property, _merge_dict_property, merge
+from config.schema import KNOWN_NAMESPACES_KEY
+from domain.plz.target.target import Target
 
 
 class TestMerge(TestCase):
@@ -10,13 +12,7 @@ class TestMerge(TestCase):
         with self.subTest("overrides parent values"):
             self.assertFalse(
                 _merge_bool_property(
-                    USE_GLOBS_AS_SRCS_KEY,
-                    [
-                        {USE_GLOBS_AS_SRCS_KEY: False, KNOWN_NAMESPACES_KEY: {}, KNOWN_DEPENDENCIES_KEY: {}},
-                        {USE_GLOBS_AS_SRCS_KEY: True, KNOWN_NAMESPACES_KEY: {"x.y": "//x:y"}},
-                        {USE_GLOBS_AS_SRCS_KEY: False, KNOWN_DEPENDENCIES_KEY: {"x.y": "//a/b:c"}},
-                        {USE_GLOBS_AS_SRCS_KEY: False},
-                    ],
+                    [False, True, False, False],
                     default=False,
                 ),
             )
@@ -24,13 +20,7 @@ class TestMerge(TestCase):
         with self.subTest("inherits true value"):
             self.assertTrue(
                 _merge_bool_property(
-                    USE_GLOBS_AS_SRCS_KEY,
-                    [
-                        {KNOWN_NAMESPACES_KEY: {}, KNOWN_DEPENDENCIES_KEY: {}},
-                        {USE_GLOBS_AS_SRCS_KEY: True, KNOWN_NAMESPACES_KEY: {"x.y": "//x:y"}},
-                        {USE_GLOBS_AS_SRCS_KEY: False, KNOWN_DEPENDENCIES_KEY: {"x.y": "//a/b:c"}},
-                        {USE_GLOBS_AS_SRCS_KEY: True},
-                    ],
+                    [None, True, False, True],
                     default=False,
                 ),
             )
@@ -38,17 +28,18 @@ class TestMerge(TestCase):
         with self.subTest("inherits false value"):
             self.assertFalse(
                 _merge_bool_property(
-                    USE_GLOBS_AS_SRCS_KEY,
-                    [
-                        {KNOWN_NAMESPACES_KEY: {}, KNOWN_DEPENDENCIES_KEY: {}},
-                        {USE_GLOBS_AS_SRCS_KEY: False, KNOWN_NAMESPACES_KEY: {"x.y": "//x:y"}},
-                        {USE_GLOBS_AS_SRCS_KEY: True, KNOWN_DEPENDENCIES_KEY: {"x.y": "//a/b:c"}},
-                        {USE_GLOBS_AS_SRCS_KEY: True},
-                    ],
+                    [None, False, True, True],
                     default=False,
                 ),
             )
 
+        with self.subTest("respects default"):
+            self.assertTrue(
+                _merge_bool_property(
+                    [None, None],
+                    default=True,
+                ),
+            )
         return
 
     def test__merge_dict_property_with(self):
@@ -82,4 +73,31 @@ class TestMerge(TestCase):
                     testcase.expected_output,
                     _merge_dict_property(testcase.input),
                 )
+        return
+
+    def test_merge(self):
+        configs = [
+            Config(
+                known_deps={"a.b.c": [Target("//a/b:c")]},
+                known_namespaces={},
+                use_glob_as_srcs=None,
+            ),
+            Config(
+                known_deps={"d.e.f": [Target("//d/e:f")]},
+                known_namespaces={"google.protobuf": Target("//third_party/python3:protobuf")},
+                use_glob_as_srcs=False,
+            ),
+            Config(
+                known_deps={"a.b.c": [Target("//to/be:overridden"), Target("//to/be:overridden_2")]},
+                use_glob_as_srcs=True,
+            ),
+        ]
+        self.assertEqual(
+            Config(
+                known_deps={"a.b.c": [Target("//a/b:c")], "d.e.f": [Target("//d/e:f")]},
+                known_namespaces={"google.protobuf": Target("//third_party/python3:protobuf")},
+                use_glob_as_srcs=False,
+            ),
+            merge(configs),
+        )
         return

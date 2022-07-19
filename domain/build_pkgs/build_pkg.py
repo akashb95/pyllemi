@@ -1,11 +1,12 @@
 import ast
 import logging
 import os.path
-from typing import Callable, Collection, Optional, Any
+from typing import Callable, Collection, Optional
 
 import service.ast.converters.to_python_rule
 from adapters.os.new_build_pkg_creator import NewBuildPkgCreator
 from common.logger.logger import setup_logger
+from config.config import Config
 from domain.build_files.build_file import BUILDFile
 from domain.plz.rule.python import Library, Test
 from domain.plz.target.target import Target
@@ -24,7 +25,7 @@ class BUILDPkg:
 
     """
 
-    def __init__(self, dir_path_relative_to_reporoot: str, build_file_names: Collection[str], config: dict[str, Any]):
+    def __init__(self, dir_path_relative_to_reporoot: str, build_file_names: Collection[str], config: Config):
         self._logger = setup_logger(__file__, logging.INFO)
         self._uncommitted_changes: bool = False
         self._dir_path: str = dir_path_relative_to_reporoot
@@ -36,8 +37,9 @@ class BUILDPkg:
         self._new_pkg_creator = NewBuildPkgCreator(
             self._dir_path,
             set(build_file_names),
-            config.get("useGlobAsSrcs", False),
+            config.use_glob_as_srcs or False,
         )
+        self._config = config
         self._this_pkg_build_file_path: str = ""
 
         self._has_been_modified = False
@@ -163,3 +165,7 @@ class BUILDPkg:
     @property
     def has_been_modified(self) -> bool:
         return self._has_been_modified
+
+    @property
+    def config(self):
+        return self._config
