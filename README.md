@@ -18,7 +18,7 @@ Create a `remote_file` BUILD rule to download the `.pex` binary from Github.
 ```python
 # tools/BUILD
 
-PYLLEMI_VERSION = "v0.9.0"
+PYLLEMI_VERSION = "v0.9.3"
 PYTHON_VERSION = "39"  # Alternative: "310"
 remote_file(
     name="pyllemi",
