@@ -32,3 +32,6 @@ positionallabels = true
 [alias "update-py-targets"]
 cmd = run --wd=. //third_party/tools:pyllemi -- ./ -v
 desc = Uses Pyllemi to update Python rules in the current directory.
+
+[alias "dev-update-py-targets"]
+cmd = run --wd=. //:pyllemi-py39 -- ./ -vv

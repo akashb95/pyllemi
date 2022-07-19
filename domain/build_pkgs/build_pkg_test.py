@@ -2,6 +2,7 @@ import ast
 import os
 from unittest import mock
 
+from config.config import Config
 from domain.build_pkgs.build_pkg import BUILDPkg
 from domain.plz.rule.python import Library, Test
 from domain.plz.target.target import Target
@@ -33,7 +34,7 @@ class TestBuildPkgWithNewBuildPkg(MockPythonLibraryWithNewBuildPkgTestCase):
         """
         mock_build_file_instance.dump_ast.return_value = mock_dumped_ast
 
-        BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}), config={})
+        BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}), config=Config())
 
         mock_new_build_pkg_creator.assert_called_once_with(self.new_pkg_path, frozenset({"BUILD"}), False)
         mock_new_build_pkg_creator_instance.infer_py_targets.assert_called_once()
@@ -60,7 +61,7 @@ class TestBuildPkgWithNewBuildPkg(MockPythonLibraryWithNewBuildPkgTestCase):
         mock_dumped_ast = """python_library(name="name", srcs=["module.py", "stub_module.pyi"], deps=[])"""
         mock_build_file_instance.dump_ast.return_value = mock_dumped_ast
 
-        build_pkg = BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}), config={})
+        build_pkg = BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}), config=Config())
 
         mock_new_build_pkg_creator.assert_called_once_with(self.new_pkg_path, frozenset({"BUILD"}), False)
         mock_new_build_pkg_creator_instance.infer_py_targets.assert_called_once()
@@ -96,7 +97,7 @@ class TestBuildPkgWithNewBuildPkg(MockPythonLibraryWithNewBuildPkgTestCase):
         mock_dumped_ast = """python_library(name="name", srcs=glob(["*.py"], exclude=["*_test.py"]), deps=[])"""
         mock_build_file_instance.dump_ast.return_value = mock_dumped_ast
 
-        BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}), config={"useGlobAsSrcs": True})
+        BUILDPkg(self.new_pkg_path, frozenset({"BUILD"}), config=Config(use_glob_as_srcs=True))
 
         mock_new_build_pkg_creator.assert_called_once_with(self.new_pkg_path, frozenset({"BUILD"}), True)
         mock_new_build_pkg_creator_instance.infer_py_targets.assert_called_once()
@@ -112,7 +113,7 @@ class TestBuildPkgWithNewBuildPkg(MockPythonLibraryWithNewBuildPkgTestCase):
     ):
         os.makedirs(test_dir := os.path.join(self.test_dir, "no_build_file_nor_py_srcs"))
         self.dirs_to_delete = [test_dir] + self.dirs_to_delete
-        build_pkg = BUILDPkg(test_dir, frozenset({"BUILD"}), config={"useGlobAsSrcs": True})
+        build_pkg = BUILDPkg(test_dir, frozenset({"BUILD"}), config=Config(use_glob_as_srcs=True))
         self.assertEqual(0, mock_file_open.return_value.write.call_count)
         self.assertFalse(build_pkg.has_uncommitted_changes())
         self.assertFalse(build_pkg.has_been_modified)
@@ -131,7 +132,7 @@ class TestBuildPkgWithExistingBuildFile(MockPythonLibraryTestCase):
         mock_new_build_pkg_creator_instance.infer_py_targets.assert_not_called()
         mock_build_file_instance: mock.MagicMock = mock_build_file.return_value
 
-        build_pkg = BUILDPkg(self.subpackage_dir, frozenset({"BUILD"}), config={})
+        build_pkg = BUILDPkg(self.subpackage_dir, frozenset({"BUILD"}), config=Config())
 
         mock_new_build_pkg_creator.assert_called_once_with(self.subpackage_dir, frozenset({"BUILD"}), False)
         mock_build_file_instance.add_new_target.assert_not_called()

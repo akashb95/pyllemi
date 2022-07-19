@@ -9,6 +9,7 @@ python_library(
     deps = [
         "//adapters/os",
         "//common/logger",
+        "//config",
         "//domain/build_files",
         "//domain/plz/rule",
         "//domain/plz/target",

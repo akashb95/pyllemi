@@ -77,8 +77,20 @@ def _update_ast_call_keywords(
     node: ast.Call,
     key_to_value: dict[str, BUILD_RULE_KWARG_VALUE_TYPE],
 ) -> None:
+    updated_keys = set()
     for i, k in enumerate(node.keywords):
         if k.arg in key_to_value:
+            updated_keys.add(k.arg)
             k.value = kwarg_to_ast_keyword(k.arg, key_to_value[k.arg]).value
 
+    for key_not_present_in_ast_call in key_to_value.keys() - updated_keys:
+        node.keywords.append(
+            ast.keyword(
+                arg=key_not_present_in_ast_call,
+                value=kwarg_to_ast_keyword(
+                    key_not_present_in_ast_call,
+                    key_to_value[key_not_present_in_ast_call],
+                ).value,
+            ),
+        )
     return
