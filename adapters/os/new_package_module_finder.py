@@ -58,9 +58,7 @@ class NewPackageModuleFinder:
         for build_file_name in self._build_file_names:
             build_file_path = os.path.join(self._path_to_pkg, build_file_name)
             if os.path.isfile(build_file_path):
-                self._logger.info(f"{self._path_to_pkg} already has a BUILD file")
-                raise FileExistsError(build_file_path)
-
+                self._logger.debug(f"{self._path_to_pkg} already has a BUILD file")
         return
 
     @property

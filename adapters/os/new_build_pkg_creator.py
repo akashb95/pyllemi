@@ -2,11 +2,13 @@ import os.path
 from typing import Optional
 
 from adapters.os.new_package_module_finder import NewPackageModuleFinder
+from common.logger.logger import setup_logger
 from domain.plz.rule import python as target
 
 
 class NewBuildPkgCreator:
     def __init__(self, path_to_pkg: str, build_file_names, use_glob=False):
+        self._logger = setup_logger(__file__)
         self._path_to_pkg = path_to_pkg
         self._new_package_module_finder = NewPackageModuleFinder(path_to_pkg, build_file_names)
         self._use_glob = use_glob

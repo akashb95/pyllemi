@@ -5,15 +5,6 @@ from utils.mock_python_library_with_new_build_pkg_test_case import MockPythonLib
 
 
 class TestNewPackageModuleFinder(MockPythonLibraryWithNewBuildPkgTestCase):
-    def test_errors_if_build_file_exists(self):
-        new_package_module_finder = NewPackageModuleFinder(self.test_dir)
-        self.assertRaisesRegex(
-            FileExistsError,
-            f"{os.path.join(self.test_dir, 'BUILD')}",
-            new_package_module_finder.find,
-        )
-        return
-
     def test_errors_if_pkg_dir_does_not_exist(self):
         new_package_module_finder = NewPackageModuleFinder("doesnt-exist")
         self.assertRaisesRegex(
