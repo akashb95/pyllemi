@@ -1,7 +1,7 @@
 # Pyllemi
 
 [![CI](https://github.com/akashb95/pyllemi/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/akashb95/pyllemi/actions/workflows/ci.yml)
-[![Release](https://github.com/akashb95/pyllemi/actions/workflows/release.yml/badge.svg)](https://github.com/akashb95/pyllemi/actions/workflows/release.yml)
+[![Release](https://github.com/akashb95/pyllemi/actions/workflows/release.yml/badge.svg?branch=v0.9.4)](https://github.com/akashb95/pyllemi/actions/workflows/release.yml)
 
 Pyllemi is a CLI tool to automatically update and create Please BUILD dependencies for Python targets. More
 specifically, it can:
@@ -18,7 +18,7 @@ Create a `remote_file` BUILD rule to download the `.pex` binary from Github.
 ```python
 # tools/BUILD
 
-PYLLEMI_VERSION = "v0.9.3"
+PYLLEMI_VERSION = "v0.9.4"
 PYTHON_VERSION = "39"  # Alternative: "310"
 remote_file(
     name="pyllemi",
