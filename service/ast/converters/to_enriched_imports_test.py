@@ -53,7 +53,7 @@ class TestToImportPaths(MockPythonLibraryTestCase):
         )
 
         self.assertEqual(
-            [enriched_import.Import("numpy", enriched_import.Type.THIRD_PARTY_MODULE)],
+            [enriched_import.Import("numpy.random", enriched_import.Type.THIRD_PARTY_MODULE)],
             self.transformer.convert_all([node]),
         )
         return

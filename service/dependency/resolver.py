@@ -110,14 +110,17 @@ class DependencyResolver:
             self._whatinputs_inputs_for_this_target |= set(whatinputs_input)
 
         if (
-            namespace_pkg_target := trie.longest_existing_path_in_trie(self.namespace_pkg_lookup, import_.import_)
+            namespace_pkg := trie.longest_existing_path_in_trie(self.namespace_pkg_lookup, import_.import_)
         ) != "":
-            self._logger.debug(f"Found import of a known namespace package: {namespace_pkg_target}")
-            return self.namespace_pkg_to_target[namespace_pkg_target]
+            self._logger.debug(f"Found import of a known namespace package: {namespace_pkg}")
+            return self.namespace_pkg_to_target[namespace_pkg]
 
         return None
 
     def _query_whatinputs_for_whatinputs_batch(self) -> set[Target]:
+        if len(self._whatinputs_inputs_for_this_target) == 0:
+            return set()
+
         self._logger.debug(f"running whatinputs on {self._whatinputs_inputs_for_this_target}")
 
         whatinputs_result = get_whatinputs(list(self._whatinputs_inputs_for_this_target))
