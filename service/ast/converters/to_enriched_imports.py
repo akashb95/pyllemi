@@ -141,9 +141,10 @@ class ToEnrichedImports:
 
         if import_type == enriched_import.Type.THIRD_PARTY_MODULE:
             return enriched_import.Import(
-                # Because we know it's a third-party module, only return the top-level module name.
-                # E.g. `import third_party.python3.numpy.random.x` becomes simply `numpy`.
-                import_path_candidate.removeprefix(f"{self.python_moduledir}.").split(".", maxsplit=1)[0],
+                # Strip the python moduledir from the import.
+                # E.g. `import third_party.python3.numpy.random.x` becomes simply `numpy.random.x`.
+                # Do not return only the top-level module name in case it is a third-party namespace package.
+                import_path_candidate.removeprefix(f"{self.python_moduledir}."),
                 import_type,
             )
 
