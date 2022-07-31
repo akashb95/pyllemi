@@ -1,5 +1,4 @@
 import ast
-from logging import DEBUG
 from typing import Iterator, List
 
 from common.logger.logger import setup_logger
@@ -12,7 +11,7 @@ class NodeCollector:
     """
 
     def __init__(self):
-        self._logger = setup_logger(name=__name__, level=DEBUG)
+        self._logger = setup_logger(name=__name__)
         return
 
     def collate(self, *, code: str, path: str = "") -> Iterator[AST_IMPORT_NODE_TYPE]:

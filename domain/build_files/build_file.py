@@ -1,5 +1,4 @@
 import ast
-import logging
 from typing import Iterator
 
 from common.logger.logger import setup_logger
@@ -16,7 +15,7 @@ class BUILDFile:
     """
 
     def __init__(self, ast_repr: ast.Module):
-        self._logger = setup_logger(__file__, logging.INFO)
+        self._logger = setup_logger(__file__)
         self._ast_repr: ast.Module = ast_repr
         self._modified_build_rule_to_domain_python_target: dict[ast.Call, domain_target.Python] = {}
         self._new_targets: list[domain_target.Python] = []

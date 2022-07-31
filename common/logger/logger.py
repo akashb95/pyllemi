@@ -8,6 +8,8 @@ import sys
 from logging.handlers import RotatingFileHandler
 from typing import Optional
 
+import colorama
+from common.logger.notice_level import NOTICE
 from common.logger.pretty_formatter import PrettyFormatter
 
 
@@ -27,26 +29,20 @@ class UpperThresholdFilter(logging.Filter):
 
 def setup_logger(
     name: str,
-    level: Optional[int] = None,
     formatter: Optional[logging.Formatter] = None,
     filepath: Optional[str] = None,
 ) -> logging.Logger:
     """
 
     :param name: Logger name (can be fetched with logging.get_logger(name))
-    :param level: logging level (e.g. logging.DEBUG)
     :param formatter: log message format
     :param filepath: If set, saves log records to this path
     :return: Logger instance
     """
 
-    level_from_env = os.getenv("PYLLEMI_LOG_LEVEL") or logging.WARNING
+    level_from_env = os.getenv("PYLLEMI_LOG_LEVEL") or NOTICE
 
-    log_fmt = (
-        "%(asctime)s [%(levelname)s] [%(threadName)s] || %(funcName)s in %(pathname)s :%(lineno)d\n"
-        "%(message)s\n"
-        "----"
-    )
+    log_fmt = f"{colorama.Style.RESET_ALL}%(asctime)s [%(levelname)s] || %(message)s"
 
     if formatter is None:
         formatter = PrettyFormatter(log_fmt)
@@ -59,7 +55,7 @@ def setup_logger(
 
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.DEBUG)
-    stdout_handler.addFilter(UpperThresholdFilter(logging.INFO))
+    stdout_handler.addFilter(UpperThresholdFilter(logging.WARNING))
     stdout_handler.setFormatter(formatter)
 
     stderr_handler = logging.StreamHandler(sys.stderr)

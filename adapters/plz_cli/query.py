@@ -4,12 +4,11 @@ import re
 import subprocess
 from collections import namedtuple
 from functools import cache, lru_cache
-from logging import INFO
 from typing import Any, AnyStr, IO, Optional
 
 from common.logger.logger import setup_logger
 
-LOGGER = setup_logger(__file__, INFO)
+LOGGER = setup_logger(__file__)
 
 WhatInputsResult = namedtuple("WhatInputsResult", ["plz_targets", "targetless_paths"])
 

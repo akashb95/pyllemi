@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 from argparse import ArgumentParser
@@ -72,9 +71,10 @@ def run(build_pkg_dir_paths: list[str]):
 
     if modified_build_file_paths:
         run_plz_fmt(*modified_build_file_paths)
-        print(f"{Fore.MAGENTA}📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.\n", file=sys.stdout)
+        # noinspection PyUnresolvedReferences
+        LOGGER.notice(f"📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.")
     else:
-        print(f"\n{Fore.GREEN}No BUILD files were modified. Your imports were 👌 already.\n", file=sys.stdout)
+        LOGGER.info(f"No BUILD files were modified. Your imports were 👌 already.")
     return
 
 
@@ -92,6 +92,7 @@ def to_relative_path_from_reporoot(path: str) -> str:
 if __name__ == "__main__":
     import time
     from common.logger.logger import setup_logger
+    from common.logger.notice_level import add_notice_logging_level, NOTICE
 
     parser = ArgumentParser()
 
@@ -104,8 +105,9 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", "-v", action="count", default=0)
 
     args = parser.parse_args()
-    os.environ["PYLLEMI_LOG_LEVEL"] = str(max(0, logging.WARNING - (10 * args.verbose)))
+    os.environ["PYLLEMI_LOG_LEVEL"] = str(max(0, NOTICE - (10 * args.verbose)))
 
+    add_notice_logging_level()
     LOGGER = setup_logger(__file__)
 
     # Input sanitisation and change dir to reporoot

@@ -1,6 +1,5 @@
 import os
 import re
-from logging import INFO
 from typing import Optional
 
 from common.logger.logger import setup_logger
@@ -10,7 +9,7 @@ class NewPackageModuleFinder:
     default_build_file_names = frozenset({"BUILD", "BUILD.plz"})
 
     def __init__(self, path_to_pkg: str, build_file_names: Optional[set[str]] = None):
-        self._logger = setup_logger(__file__, INFO)
+        self._logger = setup_logger(__file__)
 
         self._path_to_pkg = path_to_pkg
 

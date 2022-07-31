@@ -2,6 +2,7 @@ import copy
 import logging
 
 import colorama
+from common.logger.notice_level import NOTICE
 
 
 class PrettyFormatter(logging.Formatter):
@@ -20,6 +21,8 @@ class PrettyFormatter(logging.Formatter):
             color = "{}{}".format(colorama.Style.DIM, colorama.Fore.CYAN)
         elif record.levelno <= logging.INFO:
             color = colorama.Fore.GREEN
+        elif record.levelno <= NOTICE:
+            color = colorama.Fore.CYAN
         elif record.levelno <= logging.WARNING:
             color = colorama.Fore.LIGHTYELLOW_EX
         elif record.levelno <= logging.ERROR:

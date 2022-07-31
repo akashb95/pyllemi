@@ -1,5 +1,4 @@
 import ast
-import logging
 import os.path
 from typing import Callable, Collection, Optional
 
@@ -26,7 +25,7 @@ class BUILDPkg:
     """
 
     def __init__(self, dir_path_relative_to_reporoot: str, build_file_names: Collection[str], config: Config):
-        self._logger = setup_logger(__file__, logging.INFO)
+        self._logger = setup_logger(__file__)
         self._uncommitted_changes: bool = False
         self._dir_path: str = dir_path_relative_to_reporoot
         self._build_file_names = build_file_names
