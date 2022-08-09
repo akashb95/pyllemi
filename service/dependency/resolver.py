@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Collection, Optional
 
 from adapters.plz_cli.query import get_whatinputs
@@ -9,6 +10,8 @@ from domain.python_import import enriched as enriched_import
 from service.ast.converters.to_enriched_imports import ToEnrichedImports
 from service.python_import.enriched import to_whatinputs_input
 from service.python_import.node_collector import NodeCollector
+
+VALID_PYFILE_REGEX = r".+\.pyi?"
 
 
 def convert_os_path_to_import_path(os_path: str, abs_path_to_project_root: str = "") -> str:
@@ -57,12 +60,23 @@ class DependencyResolver:
 
         import_targets: set[Target] = set()
         for src in srcs:
-            self._logger.debug(
-                f"Starting to resolve dependencies for {os.path.join(srcs_plz_target.build_pkg_dir, src)}"
-            )
-            with open(relative_path_to_src := os.path.join(srcs_plz_target.build_pkg_dir, src), "r") as pyfile:
+            # Skip parsing any files which are not valid Python files
+            relative_path_to_src = os.path.join(srcs_plz_target.build_pkg_dir, src)
+            if re.match(VALID_PYFILE_REGEX, relative_path_to_src) is None:
+                self._logger.debug(f"Skipping src with invalid filetype: {relative_path_to_src}")
+                continue
+            self._logger.debug(f"Starting to resolve dependencies for {relative_path_to_src}")
+
+            with open(relative_path_to_src, "r") as pyfile:
                 code = pyfile.read()
-            for import_node in self.collator.collate(code=code, path=relative_path_to_src):
+            try:
+                import_nodes = self.collator.collate(code=code, path=relative_path_to_src)
+            except SyntaxError as e:
+                self._logger.error(
+                    "🚨 Your code appears to have a syntax error! plz fix && plz run again!",
+                    exc_info=e,
+                )
+            for import_node in import_nodes:
                 for enriched_imports in self.enricher.convert(import_node, pyfile_path=relative_path_to_src):
                     for enriched_import_ in enriched_imports:
                         dep = self._resolve_dependencies_for_enriched_import(enriched_import_)
@@ -109,9 +123,7 @@ class DependencyResolver:
             # Batch whatinputs calls for performance gains.
             self._whatinputs_inputs_for_this_target |= set(whatinputs_input)
 
-        if (
-            namespace_pkg := trie.longest_existing_path_in_trie(self.namespace_pkg_lookup, import_.import_)
-        ) != "":
+        if (namespace_pkg := trie.longest_existing_path_in_trie(self.namespace_pkg_lookup, import_.import_)) != "":
             self._logger.debug(f"Found import of a known namespace package: {namespace_pkg}")
             return self.namespace_pkg_to_target[namespace_pkg]
 

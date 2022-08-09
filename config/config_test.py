@@ -7,7 +7,7 @@ from config.config import _validate
 
 
 class TestConfigValidation(TestCase):
-    def test_raises_validation_err_when_invalid_schema(self):
+    def test_raises_validation_err_when_invalid_schema_for_known_dependencies(self):
         SubTest = namedtuple("SubTest", ["name", "known_dependencies"])
         subtests = [
             SubTest(
@@ -81,10 +81,28 @@ class TestConfigValidation(TestCase):
         ]
 
         for testcase in subtests:
-            # with self.subTest(testcase.name):
-            self.assertRaises(
-                jsonschema.exceptions.ValidationError,
-                _validate,
-                {"knownNamespaces": testcase.known_namespaces},
-            )
+            with self.subTest(testcase.name):
+                self.assertRaises(
+                    jsonschema.exceptions.ValidationError,
+                    _validate,
+                    {"knownNamespaces": testcase.known_namespaces},
+                )
+        return
+
+    def test_raises_validation_err_when_invalid_schema_for_custom_rules_to_manage(self):
+        SubTest = namedtuple("SubTest", ["name", "custom_rules_to_manage"])
+        subtests = [
+            SubTest(
+                name="contains empty string",
+                custom_rules_to_manage=[""],
+            ),
+        ]
+
+        for testcase in subtests:
+            with self.subTest(testcase.name):
+                self.assertRaises(
+                    jsonschema.exceptions.ValidationError,
+                    _validate,
+                    {"knownDependencies": testcase.custom_rules_to_manage},
+                )
         return

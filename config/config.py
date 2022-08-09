@@ -7,7 +7,7 @@ import jsonschema
 
 from config import known_dependencies, known_namespace_packages
 from config.common import LOGGER
-from config.schema import SCHEMA, USE_GLOBS_AS_SRCS_KEY
+from config.schema import SCHEMA, CUSTOM_RULES_TO_MANAGE_KEY, USE_GLOBS_AS_SRCS_KEY, NO_PRUNE_KEY
 from domain.plz.target.target import Target
 
 CONFIG_FILE_NAME = ".pyllemi.json"
@@ -15,15 +15,19 @@ CONFIG_FILE_NAME = ".pyllemi.json"
 
 @dataclass
 class Config:
+    custom_rules_to_manage: set[str] = field(default_factory=set)
     known_deps: dict[str, Collection[Target]] = field(default_factory=dict)
     known_namespaces: dict[str, Target] = field(default_factory=dict)
+    no_prune: Optional[bool] = None
     use_glob_as_srcs: Optional[bool] = None
 
     def __repr__(self) -> str:
         return (
             f"Config("
+            f"custom_rules_to_manage={self.custom_rules_to_manage}, "
             f"known_deps={self.known_deps}, "
             f"known_namespaces={self.known_namespaces}, "
+            f"no_prune={self.no_prune}, "
             f"use_glob_as_srcs={self.use_glob_as_srcs})"
             ")"
         )
@@ -61,8 +65,10 @@ def unmarshal(path: str) -> Config:
     _validate(raw_config)
 
     return Config(
+        custom_rules_to_manage=raw_config.get(CUSTOM_RULES_TO_MANAGE_KEY, set()),
         known_deps=known_dependencies.get_from_config(raw_config),
         known_namespaces=known_namespace_packages.get_from_config(raw_config),
+        no_prune=raw_config.get(NO_PRUNE_KEY, False),
         use_glob_as_srcs=raw_config.get(USE_GLOBS_AS_SRCS_KEY, False),
     )
 
@@ -74,8 +80,4 @@ def _validate(config: dict[str, Any]):
         LOGGER.critical("Invalid JSON Schema for known dependencies", exc_info=e)
         raise e
 
-    return Config(
-        known_deps=known_dependencies.get_from_config(config),
-        known_namespaces=known_namespace_packages.get_from_config(config),
-        use_glob_as_srcs=config.get(USE_GLOBS_AS_SRCS_KEY, False),
-    )
+    return

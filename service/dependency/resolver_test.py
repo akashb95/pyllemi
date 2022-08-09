@@ -190,6 +190,21 @@ class TestDependencyResolver(TestCase):
         self.assertEqual(set(), dep_resolver.resolve_deps_for_srcs(Target("//does/not:matter"), set()))
         return
 
+    def test_ignores_srcs_of_unsupported_filetypes(self):
+        dep_resolver = DependencyResolver(
+            python_moduledir="third_party.python",
+            enricher=self.mock_enricher,
+            std_lib_modules=sys.stdlib_module_names,
+            available_third_party_module_targets={"//third_party/python:colorama"},
+            known_dependencies={},
+            namespace_to_target={},
+            nodes_collator=self.mock_nodes_collator,
+        )
+
+        deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"x.txt", "y.build_def"})
+        self.assertEqual(set(), deps)
+        return
+
 
 class TestConvertOSPathToPyImportPath(TestCase):
     def test_dirname(self):

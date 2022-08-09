@@ -42,7 +42,7 @@ cmd = run --wd=. //third_party/tools:pyllemi -- ./ -v
 Tested on Python 3.9 and 3.10.
 
 The only difference between the `pyllemi-py39.pex` and `pyllemi-py310.pex` is that the binary contains a different
-shebang to use different versions of Python available in `env`. 
+shebang to use different versions of Python available in `env`.
 
 ## Config
 
@@ -64,6 +64,13 @@ reporoot. For any input BUILD Package directory, the effective config will be th
 
 When run on `pkg/` and on `pkg/subpkg`, Pyllemi will merge `pkg/.pyllemi.json` and `.pyllemi.json` (at the reporoot) to
 get an "effective config", which will then be applied when resolving dependencies.
+
+### `customRulesToManage`
+
+Array of strings. Names of build rules to manage (in addition to the builtin `python_library`, `python_test` and 
+`python_binary` rules). The custom rules _must_ have the `name` attribute defined. In addition, they must have the
+following `deps` and `srcs` attributes definable, even if they are not set at the time Pyllemi is executed on any 
+instances of these rules.
 
 ### `knownNamespaces`
 
@@ -130,6 +137,11 @@ character per the Python syntax spec (like a hyphen) in its namespace.
   ]
 }
 ```
+
+### `noPrune`
+
+Boolean. Setting this to True does not remove existing dependencies defined for a target. Any new dependencies which are
+resolved by Pyllemi are added to the existing dependencies.
 
 ### `useGlobAsSrcs`
 

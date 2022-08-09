@@ -46,7 +46,7 @@ def run(build_pkg_dir_paths: list[str]):
         build_pkgs.append(BUILDPkg(build_pkg_dir_path, set(build_file_names), merged_config))
 
     if len(build_pkgs) == 0:
-        print(f"\n{Fore.GREEN}No BUILD package provided; no files modified.", file=sys.stdout)
+        LOGGER.notice(f"\n{Fore.GREEN}No BUILD package provided; no files modified.", file=sys.stdout)
         return
 
     python_moduledir = get_python_moduledir()
@@ -71,7 +71,6 @@ def run(build_pkg_dir_paths: list[str]):
 
     if modified_build_file_paths:
         run_plz_fmt(*modified_build_file_paths)
-        # noinspection PyUnresolvedReferences
         LOGGER.notice(f"📢 Modified BUILD files: {', '.join(modified_build_file_paths)}.")
     else:
         LOGGER.info(f"No BUILD files were modified. Your imports were 👌 already.")
