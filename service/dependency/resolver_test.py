@@ -11,13 +11,13 @@ from service.dependency.resolver import DependencyResolver, convert_os_path_to_i
 
 class TestDependencyResolver(TestCase):
     def setUp(self) -> None:
-        self.mock_nodes_collator = mock.MagicMock()
+        self.mock_nodes_collector = mock.MagicMock()
         self.mock_enricher = mock.MagicMock()
         return
 
     @mock.patch("builtins.open", new_callable=mock.mock_open(read_data="import colorama"))
     def test_resolve_deps_for_srcs_with_third_party_module(self, mock_file_open: mock.MagicMock):
-        self.mock_nodes_collator.collate.return_value = [
+        self.mock_nodes_collector.collate.return_value = [
             mock_import_node := ast.Import(names=[ast.Name(name="colorama")])
         ]
         mock_file_open.return_value.__enter__.return_value.read.return_value = "import colorama"
@@ -32,12 +32,12 @@ class TestDependencyResolver(TestCase):
             available_third_party_module_targets={"//third_party/python:colorama"},
             known_dependencies={},
             namespace_to_target={"google.protobuf": Target("//third_party/python3:protobuf")},
-            nodes_collator=self.mock_nodes_collator,
+            nodes_collator=self.mock_nodes_collector,
         )
 
         deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"x.py"})
         mock_file_open.assert_called_once_with("path/to/x.py", "r")
-        self.mock_nodes_collator.collate.assert_called_once_with(code="import colorama", path="path/to/x.py")
+        self.mock_nodes_collector.collate.assert_called_once_with(code="import colorama", path="path/to/x.py")
         self.mock_enricher.convert.assert_called_once_with(mock_import_node, pyfile_path="path/to/x.py")
         self.assertEqual({Target("//third_party/python:colorama")}, deps)
 
@@ -50,7 +50,7 @@ class TestDependencyResolver(TestCase):
         mock_file_open: mock.MagicMock,
         mock_get_whatinputs: mock.MagicMock,
     ):
-        self.mock_nodes_collator.collate.return_value = [
+        self.mock_nodes_collector.collate.return_value = [
             mock_import_node := ast.Import(names=[ast.Name(name="custom.module")])
         ]
         mock_file_open.return_value.__enter__.return_value.read.return_value = "import custom.module"
@@ -66,12 +66,12 @@ class TestDependencyResolver(TestCase):
             available_third_party_module_targets={"//third_party/python:colorama"},
             known_dependencies={},
             namespace_to_target={"google.protobuf": Target("//third_party/python3:protobuf")},
-            nodes_collator=self.mock_nodes_collator,
+            nodes_collator=self.mock_nodes_collector,
         )
 
         deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"y.py"})
         mock_file_open.assert_called_once_with("path/to/y.py", "r")
-        self.mock_nodes_collator.collate.assert_called_once_with(code="import custom.module", path="path/to/y.py")
+        self.mock_nodes_collector.collate.assert_called_once_with(code="import custom.module", path="path/to/y.py")
         self.mock_enricher.convert.assert_called_once_with(mock_import_node, pyfile_path="path/to/y.py")
         mock_get_whatinputs.assert_called_once()
         self.assertEqual({Target("//custom:target")}, deps)
@@ -85,7 +85,7 @@ class TestDependencyResolver(TestCase):
         mock_file_open: mock.MagicMock,
         mock_get_whatinputs: mock.MagicMock,
     ):
-        self.mock_nodes_collator.collate.return_value = [
+        self.mock_nodes_collector.collate.return_value = [
             mock_import_node := ast.Import(names=[ast.Name(name="custom.module")])
         ]
         mock_file_open.return_value.__enter__.return_value.read.return_value = "import custom.module, path.to.target"
@@ -99,12 +99,12 @@ class TestDependencyResolver(TestCase):
             available_third_party_module_targets={"//third_party/python:colorama"},
             known_dependencies={},
             namespace_to_target={"google.protobuf": Target("//third_party/python3:protobuf")},
-            nodes_collator=self.mock_nodes_collator,
+            nodes_collator=self.mock_nodes_collector,
         )
 
         deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"z.pyi"})
         mock_file_open.assert_called_once_with("path/to/z.pyi", "r")
-        self.mock_nodes_collator.collate.assert_called_once_with(
+        self.mock_nodes_collector.collate.assert_called_once_with(
             code="import custom.module, path.to.target",
             path="path/to/z.pyi",
         )
@@ -116,7 +116,7 @@ class TestDependencyResolver(TestCase):
 
     @mock.patch("builtins.open", new_callable=mock.mock_open(read_data="import custom.module"))
     def test_injects_known_dependencies(self, mock_file_open: mock.MagicMock):
-        self.mock_nodes_collator.collate.return_value = [
+        self.mock_nodes_collector.collate.return_value = [
             mock_import_node := ast.Import(names=[ast.Name(name="colorama")])
         ]
         mock_file_open.return_value.__enter__.return_value.read.return_value = "import colorama"
@@ -131,12 +131,12 @@ class TestDependencyResolver(TestCase):
             available_third_party_module_targets={"//third_party/python:colorama"},
             known_dependencies={"path.to.x": [Target("//injected/pkg:target")]},
             namespace_to_target={"google.protobuf": Target("//third_party/python3:protobuf")},
-            nodes_collator=self.mock_nodes_collator,
+            nodes_collator=self.mock_nodes_collector,
         )
 
         deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"x.py"})
         mock_file_open.assert_called_once_with("path/to/x.py", "r")
-        self.mock_nodes_collator.collate.assert_called_once_with(code="import colorama", path="path/to/x.py")
+        self.mock_nodes_collector.collate.assert_called_once_with(code="import colorama", path="path/to/x.py")
         self.mock_enricher.convert.assert_called_once_with(mock_import_node, pyfile_path="path/to/x.py")
         self.assertEqual(
             {Target("//third_party/python:colorama"), Target("//injected/pkg:target")},
@@ -146,7 +146,7 @@ class TestDependencyResolver(TestCase):
 
     @mock.patch("builtins.open", new_callable=mock.mock_open(read_data="import custom.module"))
     def test_injects_namespaced_pkg_targets(self, mock_file_open: mock.MagicMock):
-        self.mock_nodes_collator.collate.return_value = [
+        self.mock_nodes_collector.collate.return_value = [
             mock_import_node := ast.Import(names=[ast.Name(name="colorama")])
         ]
         mock_file_open.return_value.__enter__.return_value.read.return_value = "import google.protobuf.field_mask_pb2"
@@ -161,12 +161,12 @@ class TestDependencyResolver(TestCase):
             available_third_party_module_targets={"//third_party/python3:protobuf"},
             known_dependencies={},
             namespace_to_target={"google.protobuf": Target("//third_party/python3:protobuf")},
-            nodes_collator=self.mock_nodes_collator,
+            nodes_collator=self.mock_nodes_collector,
         )
 
         deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"x.py"})
         mock_file_open.assert_called_once_with("path/to/x.py", "r")
-        self.mock_nodes_collator.collate.assert_called_once_with(
+        self.mock_nodes_collector.collate.assert_called_once_with(
             code="import google.protobuf.field_mask_pb2",
             path="path/to/x.py",
         )
@@ -185,7 +185,7 @@ class TestDependencyResolver(TestCase):
             available_third_party_module_targets={"//third_party/python:colorama"},
             known_dependencies={},
             namespace_to_target={},
-            nodes_collator=self.mock_nodes_collator,
+            nodes_collator=self.mock_nodes_collector,
         )
         self.assertEqual(set(), dep_resolver.resolve_deps_for_srcs(Target("//does/not:matter"), set()))
         return
@@ -198,7 +198,7 @@ class TestDependencyResolver(TestCase):
             available_third_party_module_targets={"//third_party/python:colorama"},
             known_dependencies={},
             namespace_to_target={},
-            nodes_collator=self.mock_nodes_collator,
+            nodes_collator=self.mock_nodes_collector,
         )
 
         deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"x.txt", "y.build_def"})

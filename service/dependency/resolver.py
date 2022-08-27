@@ -76,6 +76,7 @@ class DependencyResolver:
                     "🚨 Your code appears to have a syntax error! plz fix && plz run again!",
                     exc_info=e,
                 )
+                return import_targets
             for import_node in import_nodes:
                 for enriched_imports in self.enricher.convert(import_node, pyfile_path=relative_path_to_src):
                     for enriched_import_ in enriched_imports:
