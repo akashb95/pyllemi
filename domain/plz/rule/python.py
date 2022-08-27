@@ -1,14 +1,20 @@
 import ast
-from abc import ABC
 from typing import Union
 
 from domain.plz.rule.rule import Rule, Types
+from domain.plz.rule.utils import is_builtin_python_rule
 
 
-class Python(Rule, ABC):
+class Python(Rule):
     def __init__(self, *, rule_name: str, name: str, srcs: Union[set[str], ast.Call], deps: set[str], **kwargs):
         super().__init__(rule_name=rule_name, name=name, srcs=srcs, deps=deps, **kwargs)
         return
+
+    @property
+    def type_(self) -> Types:
+        if is_builtin_python_rule(self.rule_name):
+            return Types(self.rule_name)
+        return Types.UNKNOWN
 
 
 class Binary(Python):

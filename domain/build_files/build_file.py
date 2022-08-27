@@ -2,8 +2,9 @@ import ast
 from typing import Iterator
 
 from common.logger.logger import setup_logger
+from config.config import Config
 from domain.plz.rule import python as domain_target
-from domain.targets.utils import is_ast_node_python_build_rule
+from domain.plz.rule.utils import get_ast_nodes_to_manage
 from service.ast.converters import from_python_rule
 from service.ast.converters.common import BUILD_RULE_KWARG_VALUE_TYPE, kwarg_to_ast_keyword
 
@@ -14,19 +15,16 @@ class BUILDFile:
     Stores and provides methods to modify the AST representation of these targets.
     """
 
-    def __init__(self, ast_repr: ast.Module):
+    def __init__(self, ast_repr: ast.Module, config: Config):
         self._logger = setup_logger(__file__)
         self._ast_repr: ast.Module = ast_repr
         self._modified_build_rule_to_domain_python_target: dict[ast.Call, domain_target.Python] = {}
         self._new_targets: list[domain_target.Python] = []
+        self._custom_rules_to_manage = config.custom_rules_to_manage
 
-        self._modifiable_nodes: set[ast.Call] = self._get_all_existing_ast_python_build_rules()
-        self._logger.info(f"Found {len(self._modifiable_nodes)} Python build targets.")
+        self._modifiable_nodes: set[ast.Call] = get_ast_nodes_to_manage(self._ast_repr, self._custom_rules_to_manage)
+        self._logger.info(f"Found {len(self._modifiable_nodes)} existing Python build targets.")
         return
-
-    def _get_all_existing_ast_python_build_rules(self) -> set[ast.Call]:
-        # noinspection PyTypeChecker
-        return {node for node in ast.walk(self._ast_repr) if is_ast_node_python_build_rule(node)}
 
     def get_existing_ast_python_build_rules(self) -> Iterator[ast.Call]:
         for node in self._modifiable_nodes:

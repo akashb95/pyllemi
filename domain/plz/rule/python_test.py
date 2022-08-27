@@ -1,6 +1,6 @@
 import unittest
 
-from domain.plz.rule.python import Binary, Library, Test
+from domain.plz.rule.python import Binary, Library, Python, Test
 from domain.plz.rule.rule import Types
 
 
@@ -18,6 +18,11 @@ class TestTarget(unittest.TestCase):
     def test_initialise_python_test(self):
         test = Test(name="test", srcs={"src_test.py"}, deps=set())
         self.assertEqual(Types.PYTHON_TEST, test.type_)
+        return
+
+    def test_initialise_custom_python_rule(self):
+        rule = Python(rule_name="custom_python_rule", name="lib", srcs={"src.py"}, deps=set())
+        self.assertEqual(Types.UNKNOWN, rule.type_)
         return
 
     def test_equality(self):

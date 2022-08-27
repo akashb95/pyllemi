@@ -1,5 +1,6 @@
 import ast
 import os.path
+import re
 from typing import Callable, Collection, Optional
 
 import service.ast.converters.to_python_rule
@@ -7,7 +8,7 @@ from adapters.os.new_build_pkg_creator import NewBuildPkgCreator
 from common.logger.logger import setup_logger
 from config.config import Config
 from domain.build_files.build_file import BUILDFile
-from domain.plz.rule.python import Library, Test
+from domain.plz.rule.python import Python, Library, Test
 from domain.plz.target.target import Target
 
 
@@ -31,7 +32,7 @@ class BUILDPkg:
         self._build_file_names = build_file_names
         self._build_file_names_sorted_by_len = sorted(list(self._build_file_names), key=lambda x: len(x))
 
-        self._build_file = BUILDFile(ast.Module(body=[], type_ignores=[]))
+        self._build_file = BUILDFile(ast.Module(body=[], type_ignores=[]), config=config)
 
         self._new_pkg_creator = NewBuildPkgCreator(
             self._dir_path,
@@ -75,24 +76,31 @@ class BUILDPkg:
             return
 
         for node in self._build_file.get_existing_ast_python_build_rules():
-            as_python_target = service.ast.converters.to_python_rule.convert(node, self._dir_path)
-            self._logger.debug(f"Found target in {self._this_pkg_build_file_path}: {as_python_target}")
+            python_target: Python = service.ast.converters.to_python_rule.convert(
+                node,
+                build_pkg_dir=self._dir_path,
+                custom_rules_to_manage=self.config.custom_rules_to_manage,
+            )
+            self._logger.debug(f"Found target in {self._this_pkg_build_file_path}: {python_target}")
 
             resolved_deps = deps_resolver_fn(
-                Target(f"//{self._dir_path}:{as_python_target['name']}"),
+                Target(f"//{self._dir_path}:{python_target['name']}"),
                 # Only a python_binary target has the main attribute; all other Python targets will have srcs.
                 # The occurrence of the 2 different attributes are mutually exclusive.
-                as_python_target["srcs"] or [as_python_target["main"]],
+                set(filter(_is_supported_src_file, python_target["srcs"])) or {python_target["main"]},
             )
 
             if (
                 new_deps := set(map(lambda plz_target: plz_target.simplify(self._dir_path), resolved_deps))
-            ) == as_python_target["deps"]:
+            ) == python_target["deps"]:
                 # No need to update dependencies if there is no change
                 continue
 
-            as_python_target["deps"] = new_deps
-            self._build_file.register_modified_build_rule_to_python_target(node, as_python_target)
+            if self.config.no_prune:
+                python_target["deps"] |= new_deps
+            else:
+                python_target["deps"] = new_deps
+            self._build_file.register_modified_build_rule_to_python_target(node, python_target)
             self._uncommitted_changes = True
         return
 
@@ -137,7 +145,7 @@ class BUILDPkg:
             contents = build_file.read()
 
         contents_as_ast = ast.parse(contents)
-        self._build_file = BUILDFile(contents_as_ast)
+        self._build_file = BUILDFile(contents_as_ast, config=self.config)
         return
 
     def __str__(self):
@@ -168,3 +176,7 @@ class BUILDPkg:
     @property
     def config(self):
         return self._config
+
+
+def _is_supported_src_file(s: str) -> bool:
+    return re.match(r".+\.pyi?$", s) is not None
