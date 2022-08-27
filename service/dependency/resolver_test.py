@@ -146,7 +146,7 @@ class TestDependencyResolver(TestCase):
 
     @mock.patch("builtins.open", new_callable=mock.mock_open(read_data="import custom.module"))
     def test_injects_namespaced_pkg_targets_when_moduledir_included(self, mock_file_open: mock.MagicMock):
-        self.mock_nodes_collector.collate.return_value = [
+        self.mock_nodes_collator.collate.return_value = [
             mock_import_node := ast.ImportFrom(
                 module="third_party.python3.google",
                 names=[ast.Name(name="protobuf")],
@@ -166,13 +166,13 @@ class TestDependencyResolver(TestCase):
             available_third_party_module_targets={"//third_party/python3:protobuf"},
             known_dependencies={},
             namespace_to_target={"google.protobuf": Target("//third_party/python3:protobuf")},
-            nodes_collator=self.mock_nodes_collector,
+            nodes_collator=self.mock_nodes_collator,
         )
 
         deps = dep_resolver.resolve_deps_for_srcs(Target("//path/to:target"), srcs={"x.py"})
         mock_file_open.assert_called_once_with("path/to/x.py", "r")
-        self.mock_nodes_collector.collate.assert_called_once_with(
-            code="import google.protobuf.field_mask_pb2",
+        self.mock_nodes_collator.collate.assert_called_once_with(
+            code="from third_party.python3.google import protobuf",
             path="path/to/x.py",
         )
         self.mock_enricher.convert.assert_called_once_with(mock_import_node, pyfile_path="path/to/x.py")
