@@ -29,6 +29,14 @@ class TestResolveType(MockPythonLibraryTestCase):
         )
         return
 
+    def test_import_of_third_module_import(self):
+        py_import = f"third_party.python3.google.protobuf"
+        self.assertEqual(
+            enriched_import.Type.THIRD_PARTY_MODULE,
+            resolve_import_type(py_import, "third_party.python3"),
+        )
+        return
+
 
 class TestToWhatInputsInput(MockPythonLibraryTestCase):
     def test_module(self):

@@ -75,13 +75,27 @@ class ToEnrichedImports:
         # from <> import <>
         for name in node.names:
             module_only_import = self._resolve_import_from_import_path_candidate(node.module)
-            if module_only_import.type_ != enriched_import.Type.PACKAGE:
+            if (
+                module_only_import.type == enriched_import.Type.THIRD_PARTY_MODULE
+                or module_only_import.type == enriched_import.Type.UNKNOWN
+            ):
+                # Keep entire import path for third party modules. This is to deal with the combination of ImportFrom
+                # nodes with import of a third-party namespace package. E.g.:
+                # from third_party.python3.google import protobuf
+                # from google import protobuf
+                imports.append(self._resolve_import_from_import_path_candidate(f"{node.module}.{name.name}"))
+                continue
+
+            if module_only_import.type == enriched_import.Type.UNKNOWN:
+                imports.append(self._resolve_import_from_import_path_candidate(f"{node.module}.{name.name}"))
+
+            if module_only_import.type != enriched_import.Type.PACKAGE:
                 imports.append(module_only_import)
                 continue
 
             # Ascertain import type of `<node.module>.<name.name>`.
             full_import = self._resolve_import_from_import_path_candidate(f"{node.module}.{name.name}")
-            if full_import.type_ != enriched_import.Type.UNKNOWN:
+            if full_import.type != enriched_import.Type.UNKNOWN:
                 imports.append(full_import)
                 continue
 
@@ -91,7 +105,7 @@ class ToEnrichedImports:
             # * erroneous
             # TODO: add unit-test for this path
             init_import = self._resolve_import_from_import_path_candidate(f"{node.module}.__init__")
-            if init_import.type_ == enriched_import.Type.MODULE or init_import.type_ == enriched_import.Type.STUB:
+            if init_import.type == enriched_import.Type.MODULE or init_import.type == enriched_import.Type.STUB:
                 imports.append(init_import)
                 continue
 

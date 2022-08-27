@@ -47,13 +47,26 @@ class TestToImportPaths(MockPythonLibraryTestCase):
 
     def test_import_from_node_when_specifying_moduledir_in_third_party_import(self):
         node = ast.ImportFrom(
-            module="third_party.python3.numpy.random",
+            module="third_party.python3.google",
             level=0,
-            names=[ast.alias(name="Object")],
+            names=[ast.alias(name="protobuf")],
         )
 
         self.assertEqual(
-            [enriched_import.Import("numpy.random", enriched_import.Type.THIRD_PARTY_MODULE)],
+            [enriched_import.Import("google.protobuf", enriched_import.Type.THIRD_PARTY_MODULE)],
+            self.transformer.convert_all([node]),
+        )
+        return
+
+    def test_import_from_node_when_not_specifying_moduledir_in_third_party_import(self):
+        node = ast.ImportFrom(
+            module="google",
+            level=0,
+            names=[ast.alias(name="protobuf")],
+        )
+
+        self.assertEqual(
+            [enriched_import.Import("google.protobuf", enriched_import.Type.UNKNOWN)],
             self.transformer.convert_all([node]),
         )
         return
@@ -110,7 +123,7 @@ class TestToImportPaths(MockPythonLibraryTestCase):
         )
 
         self.assertEqual(
-            [enriched_import.Import("argparse", enriched_import.Type.UNKNOWN)],
+            [enriched_import.Import("argparse.ArgumentParser", enriched_import.Type.UNKNOWN)],
             self.transformer.convert_all([node]),
         )
 
