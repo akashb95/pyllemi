@@ -86,9 +86,6 @@ class ToEnrichedImports:
                 imports.append(self._resolve_import_from_import_path_candidate(f"{node.module}.{name.name}"))
                 continue
 
-            if module_only_import.type == enriched_import.Type.UNKNOWN:
-                imports.append(self._resolve_import_from_import_path_candidate(f"{node.module}.{name.name}"))
-
             if module_only_import.type != enriched_import.Type.PACKAGE:
                 imports.append(module_only_import)
                 continue
